@@ -6,17 +6,5 @@ package com.utsavoza.rope;
  * of its children, and the leaves consisting of flat strings, usually represented
  * as contiguous array of characters.</p>
  */
-public interface Rope extends CharSequence, Comparable<Rope>, Iterable<Character> {
-
-  Rope insert(int offset, CharSequence cs);
-
-  Rope append(CharSequence suffix);
-
-  Rope delete(int beginIndex, int endIndex);
-
-  Rope rebalance();
-
-  Rope subSequence(int beginIndex, int endIndex);
-
-  boolean isEmpty();
+public interface Rope {
 }
