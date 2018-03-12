@@ -1,6 +1,6 @@
 language: java
 
 jdk:
-  - oraclejk8
+  - oraclejdk8
 
 script: ./gradlew check connectedCheck --stacktrace
