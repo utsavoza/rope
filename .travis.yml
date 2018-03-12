@@ -3,4 +3,4 @@ language: java
 jdk:
   - oraclejdk8
 
-script: ./gradlew check connectedCheck --stacktrace
+script: ./gradlew check --info
