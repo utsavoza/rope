@@ -1,11 +1,13 @@
 package com.utsavoza.rope;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.utsavoza.rope.Util.NEW_LINE;
+import static com.utsavoza.rope.Util.compare;
 import static com.utsavoza.rope.Util.countNewLines;
 import static com.utsavoza.rope.Util.isCharBoundary;
 
@@ -90,6 +92,55 @@ final class Node {
       Node leftNode = Node.fromStringPiece(leftString);
       Node rightNode = Node.fromStringPiece(rightString);
       return Node.fromPieces(Arrays.asList(leftNode, rightNode));
+    }
+  }
+
+  static Node concat(Node rope1, Node rope2) {
+    int rope1Height = rope1.height();
+    int rope2Height = rope2.height();
+
+    switch (compare(rope1Height, rope2Height)) {
+      case LESS: {
+        List<Node> rope2Children = rope2.getChildren();
+        if (rope1Height == rope2Height - 1 && rope1.isValidNode()) {
+          return Node.mergeNodes(Collections.singletonList(rope1), rope2Children);
+        }
+        Node newRope = Node.concat(rope1, rope2Children.get(0));
+        List<Node> rope2ChildrenSubList = rope2Children.subList(1, rope2Children.size());
+        if (newRope.height() == rope2Height - 1) {
+          Node.mergeNodes(Collections.singletonList(newRope), rope2ChildrenSubList);
+        } else {
+          Node.mergeNodes(newRope.getChildren(), rope2ChildrenSubList);
+        }
+      }
+
+      case EQUAL: {
+        if (rope1.isValidNode() && rope2.isValidNode()) {
+          return Node.fromPieces(Arrays.asList(rope1, rope2));
+        }
+        if (rope1Height == 0) {
+          return Node.mergeLeaves(rope1, rope2);
+        }
+        return Node.mergeNodes(rope1.getChildren(), rope2.getChildren());
+      }
+
+      case GREATER: {
+        List<Node> rope1Children = rope1.getChildren();
+        if (rope2Height == rope1Height - 1) {
+          return Node.mergeNodes(rope1Children, Collections.singletonList(rope2));
+        }
+        int lastChildIndex = rope1Children.size() - 1;
+        Node newRope = Node.concat(rope1Children.get(lastChildIndex), rope2);
+        List<Node> rope1ChildrenSubList = rope1Children.subList(1, lastChildIndex + 1);
+        if (newRope.height() == rope1Height - 1) {
+          Node.mergeNodes(rope1ChildrenSubList, Collections.singletonList(newRope));
+        } else {
+          Node.mergeNodes(rope1ChildrenSubList, newRope.getChildren());
+        }
+      }
+
+      default:
+        throw new IllegalStateException("unreachable state");
     }
   }
 
