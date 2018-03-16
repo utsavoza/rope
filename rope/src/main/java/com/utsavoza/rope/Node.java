@@ -111,7 +111,9 @@ final class Node {
   }
 
   @Override public int hashCode() {
-    return this.nodeBody.hashCode();
+    int hash = 17;
+    hash += 31 * this.nodeBody.hashCode() + hash;
+    return hash;
   }
 
   @Override public String toString() {

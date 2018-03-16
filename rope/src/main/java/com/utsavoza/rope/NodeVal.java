@@ -1,6 +1,6 @@
 package com.utsavoza.rope;
 
-public enum NodeVal {
+enum NodeVal {
 
   LEAF {
     private Object string;
