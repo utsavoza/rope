@@ -34,7 +34,33 @@ package com.utsavoza.rope;
  *   Rope b = a.replace(1, 9, "era");
  *   assertEquals(b.toString(), "herald");
  * </pre>
+ *
+ * <br>- Possibly ??
+ * <pre>
+ *   Rope a = new Rope.Builder()
+ *      .pushString("<<")
+ *      .pushRope(Rope.from("hello"))
+ *      .pushString(">>")
+ *      .build();
+ * </pre>
  */
 public final class Rope {
 
+  private Node root;
+  private int start;
+  private int length;
+
+  private Rope(Node root, int start, int length) {
+    this.root = root;
+    this.start = start;
+    this.length = length;
+  }
+
+  private boolean isFull() {
+    return this.start == 0 && this.length == this.root.length();
+  }
+
+  public int length() {
+    return this.length;
+  }
 }
