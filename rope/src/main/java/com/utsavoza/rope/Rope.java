@@ -57,7 +57,7 @@ public final class Rope {
   }
 
   private boolean isFull() {
-    return this.start == 0 && this.length == this.root.length();
+    return this.start == 0 && this.length == this.root.getLength();
   }
 
   public int length() {

@@ -1,26 +1,24 @@
 package com.utsavoza.rope;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.utsavoza.rope.Util.NEW_LINE;
 import static com.utsavoza.rope.Util.compare;
-import static com.utsavoza.rope.Util.countNewLines;
 import static com.utsavoza.rope.Util.isCharBoundary;
 
-public final class Node {
+/** Represents a node in the tree. */
+final class Node {
 
   static final int MIN_LEAF = 511;
   static final int MAX_LEAF = 1024;
   static final int MIN_CHILDREN = 4;
   static final int MAX_CHILDREN = 8;
 
-  private NodeBody nodeBody;
+  private final NodeBody nodeBody;
 
   Node(NodeBody nodeBody) {
     this.nodeBody = nodeBody;
@@ -34,8 +32,8 @@ public final class Node {
     NodeBody nodeBody = new NodeBody.Builder()
         .height(0)
         .length(piece.length())
-        .newlineCount(countNewLines(piece))
-        .val(NodeVal.LEAF.instance(piece))
+        .newlineCount(Util.countNewLines(piece))
+        .val(new Leaf(piece))
         .build();
 
     return new Node(nodeBody);
@@ -46,14 +44,14 @@ public final class Node {
       throw new IllegalArgumentException("Nodes exceeds MAX_CHILDREN limit");
     }
 
-    int height = pieces.get(0).height();
-    int length = pieces.stream().mapToInt(Node::length).sum();
-    int newlineCount = pieces.stream().mapToInt(Node::newlineCount).sum();
+    int height = pieces.get(0).getHeight() + 1;
+    int length = pieces.stream().mapToInt(Node::getLength).sum();
+    int newlineCount = pieces.stream().mapToInt(Node::getNewlineCount).sum();
     NodeBody nodeBody = new NodeBody.Builder()
         .height(height)
         .length(length)
         .newlineCount(newlineCount)
-        .val(NodeVal.INTERNAL.instance(pieces))
+        .val(new Internal(pieces))
         .build();
 
     return new Node(nodeBody);
@@ -66,7 +64,7 @@ public final class Node {
     if (totalChildren <= MAX_CHILDREN) {
       return Node.fromPieces(children);
     } else {
-      // Splitting at midpoint is also an option.
+      // Splitting at midpoint is also an option
       int splitPoint = Math.min(MAX_CHILDREN, totalChildren - MIN_CHILDREN);
       List<Node> left = children.subList(0, splitPoint);
       List<Node> right = children.subList(splitPoint, children.size());
@@ -79,7 +77,7 @@ public final class Node {
     if (!rope1.isLeaf() || !rope2.isLeaf()) {
       throw new IllegalArgumentException("mergeLeaves() called with non-leaf node");
     }
-    if (rope1.length() >= MIN_LEAF && rope2.length() >= MIN_LEAF) {
+    if (rope1.getLength() >= MIN_LEAF && rope2.getLength() >= MIN_LEAF) {
       return Node.fromPieces(Arrays.asList(rope1, rope2));
     }
     String rope1String = ((String) rope1.nodeBody.val().get());
@@ -98,21 +96,21 @@ public final class Node {
   }
 
   static Node concat(Node rope1, Node rope2) {
-    int rope1Height = rope1.height();
-    int rope2Height = rope2.height();
+    int rope1Height = rope1.getHeight();
+    int rope2Height = rope2.getHeight();
 
     switch (compare(rope1Height, rope2Height)) {
       case LESS: {
         List<Node> rope2Children = rope2.getChildren();
         if (rope1Height == rope2Height - 1 && rope1.isValidNode()) {
-          return Node.mergeNodes(Collections.singletonList(rope1), rope2Children);
+          return mergeNodes(Collections.singletonList(rope1), rope2Children);
         }
-        Node newRope = Node.concat(rope1, rope2Children.get(0));
+        Node newRope = concat(rope1, rope2Children.get(0));
         List<Node> rope2ChildrenSubList = rope2Children.subList(1, rope2Children.size());
-        if (newRope.height() == rope2Height - 1) {
-          Node.mergeNodes(Collections.singletonList(newRope), rope2ChildrenSubList);
+        if (newRope.getHeight() == rope2Height - 1) {
+          /* return */ mergeNodes(Collections.singletonList(newRope), rope2ChildrenSubList);
         } else {
-          Node.mergeNodes(newRope.getChildren(), rope2ChildrenSubList);
+          /* return */ mergeNodes(newRope.getChildren(), rope2ChildrenSubList);
         }
       }
 
@@ -121,9 +119,9 @@ public final class Node {
           return Node.fromPieces(Arrays.asList(rope1, rope2));
         }
         if (rope1Height == 0) {
-          return Node.mergeLeaves(rope1, rope2);
+          return mergeLeaves(rope1, rope2);
         }
-        return Node.mergeNodes(rope1.getChildren(), rope2.getChildren());
+        return mergeNodes(rope1.getChildren(), rope2.getChildren());
       }
 
       case GREATER: {
@@ -134,10 +132,10 @@ public final class Node {
         int lastChildIndex = rope1Children.size() - 1;
         Node newRope = Node.concat(rope1Children.get(lastChildIndex), rope2);
         List<Node> rope1ChildrenSubList = rope1Children.subList(1, lastChildIndex + 1);
-        if (newRope.height() == rope1Height - 1) {
-          Node.mergeNodes(rope1ChildrenSubList, Collections.singletonList(newRope));
+        if (newRope.getHeight() == rope1Height - 1) {
+          /* return */ mergeNodes(rope1ChildrenSubList, Collections.singletonList(newRope));
         } else {
-          Node.mergeNodes(rope1ChildrenSubList, newRope.getChildren());
+          /* return */ mergeNodes(rope1ChildrenSubList, newRope.getChildren());
         }
       }
 
@@ -167,119 +165,28 @@ public final class Node {
     }
   }
 
-  /** TODO Find another way to build a rope in the method */
-  void subsequenceRec(int start, int end) {
-    if (start == 0 && this.length() == end) {
-      // TODO builder.push(self.clone());
-      return;
-    }
-    switch (this.nodeBody.val()) {
-      case LEAF: {
-        String str = ((String) this.nodeBody.val().get());
-        // TODO builder.push(str.substring(start, end));
-        break;
-      }
-
-      case INTERNAL: {
-        @SuppressWarnings("unchecked")
-        List<Node> children = ((List<Node>) this.nodeBody.val().get());
-        int offset = 0;
-        for (Node child : children) {
-          if (end <= offset) {
-            break;
-          }
-          if (offset + child.length() > start) {
-            child.subsequenceRec(Math.max(offset, start) - offset,
-                Math.min(child.length(), end - offset));
-          }
-          offset += child.length();
-        }
-      }
-    }
-  }
-
-  void replace(int start, int end, Node node) {
-  }
-
-  void replaceStr(int start, int end, String s) {
-  }
-
-  Optional<ChildIndexOffset> tryFindChild(List<Node> children, int start, int end) {
-    int offset = 0;
-    int i = 0;
-    while (i < children.size()) {
-      int nextOffset = children.get(i).length() + offset;
-      if (nextOffset >= start) {
-        if (nextOffset >= end) {
-          return Optional.of(new ChildIndexOffset(i, offset));
-        } else {
-          return Optional.empty();
-        }
-      }
-      offset = nextOffset;
-      i += 1;
-    }
-    return Optional.empty();
-  }
-
-  boolean tryReplaceStr(Node node, int start, int end, String s) {
-    if (node.height() == 0) {
-      return tryReplaceLeafStr(node, start, end, s);
-    }
-    // TODO also consider synchronized edit ??
-    List<Node> children = node.getChildren();
-    Optional<ChildIndexOffset> cio = tryFindChild(children, start, end);
-    if (cio.isPresent()) {
-      Node child = children.get(cio.get().index);
-      if (tryReplaceStr(child, start - cio.get().offset, end - cio.get().offset, s)) {
-        int size = children.size() + 1;
-        List<Node> nodes = new ArrayList<>(size);
-        nodes.addAll(children.subList(0, cio.get().index));
-        nodes.add(child);
-        nodes.addAll(children.subList(cio.get().index, children.size()));
-      }
-    }
-    return true;
-  }
-
-  boolean tryReplaceLeafStr(Node node, int start, int end, String s) {
-    if (node.nodeBody.val() != NodeVal.LEAF) {
-      throw new IllegalArgumentException("tryReplaceLeafStr() called with internal node");
-    }
-    int newSize = node.length() + s.length();
-    if (newSize < MIN_LEAF + (end - start) || newSize > MAX_LEAF + (end - start)) {
-      return false;
-    }
-    String leafStr = node.getLeaf();
-    String newStr = leafStr.substring(0, start) + s + leafStr.substring(end);
-    // Node newNode = Node.fromStringPiece(newStr);
-    // TODO should it be synchronized edit ??
-    node.nodeBody.val().instance(newStr);
-    return true;
-  }
-
-  int height() {
+  int getHeight() {
     return this.nodeBody.height();
   }
 
-  int length() {
+  int getLength() {
     return this.nodeBody.length();
   }
 
-  int newlineCount() {
+  int getNewlineCount() {
     return this.nodeBody.newlineCount();
   }
 
   boolean isLeaf() {
-    return this.height() == 0;
+    return this.getHeight() == 0;
   }
 
-  NodeBody nodeBody() {
+  NodeBody getNodeBody() {
     return this.nodeBody;
   }
 
   List<Node> getChildren() {
-    if (this.nodeBody.val() == NodeVal.LEAF) {
+    if (this.nodeBody.val() instanceof Leaf) {
       throw new UnsupportedOperationException("getChildren() called on leaf");
     }
     @SuppressWarnings("unchecked")
@@ -288,24 +195,21 @@ public final class Node {
   }
 
   String getLeaf() {
-    if (this.nodeBody.val() == NodeVal.INTERNAL) {
+    if (this.nodeBody.val() instanceof Internal) {
       throw new UnsupportedOperationException("getLeaf() called on internal node");
     }
     return (String) this.nodeBody.val().get();
   }
 
   boolean isValidNode() {
-    switch (this.nodeBody.val()) {
-      case LEAF:
-        return ((String) this.nodeBody.val().get()).length() >= MIN_LEAF;
-
-      case INTERNAL:
-        @SuppressWarnings("unchecked")
-        List<Node> nodes = ((List<Node>) this.nodeBody.val().get());
-        return nodes.stream().allMatch((node) -> node.length() >= MIN_CHILDREN);
-
-      default:
-        throw new UnsupportedOperationException("Unreachable state");
+    if (this.nodeBody.val() instanceof Leaf) {
+      return ((String) this.nodeBody.val().get()).length() >= MIN_LEAF;
+    } else if (this.nodeBody.val() instanceof Internal) {
+      @SuppressWarnings("unchecked")
+      List<Node> nodes = ((List<Node>) this.nodeBody.val().get());
+      return nodes.stream().allMatch((node) -> node.getLength() >= MIN_CHILDREN);
+    } else {
+      throw new UnsupportedOperationException("Unreachable state");
     }
   }
 
@@ -328,16 +232,5 @@ public final class Node {
 
   @Override public String toString() {
     return "Node: {" + "\n\t" + this.nodeBody.toString() + "\n}";
-  }
-
-  /** This class solely exists to hold the index and offset of the child node in the tree. */
-  private static class ChildIndexOffset {
-    int index;
-    int offset;
-
-    ChildIndexOffset(int index, int offset) {
-      this.index = index;
-      this.offset = offset;
-    }
   }
 }

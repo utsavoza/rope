@@ -9,7 +9,7 @@ final class Util {
   static final String NEW_LINE = "\r\n|\r|\n";
 
   private Util() {
-    /* no instances */
+    throw new AssertionError("no instances");
   }
 
   static int countNewLines(String s) {

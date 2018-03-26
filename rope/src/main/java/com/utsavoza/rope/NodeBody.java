@@ -1,5 +1,13 @@
 package com.utsavoza.rope;
 
+/**
+ * Represents the body of a node in the tree. The current implementation
+ * is {@link Rope} specific, and can possibly be generalized. The internal
+ * nodes in the tree represents concatenation of its children whereas the
+ * leaves consists of flat strings.
+ *
+ * @see NodeVal
+ */
 final class NodeBody {
 
   private int height;
@@ -49,7 +57,7 @@ final class NodeBody {
         + "\n\t\theight: " + this.height
         + "\n\t\tlength: " + this.length
         + "\n\t\tnewlineCount: " + this.newlineCount
-        + "\n\t\tNodeVal: " + this.val.toString()
+        + "\n\t\tNodeVal: " + ((this.val instanceof Leaf) ? this.val.get() : this.val.toString())
         + "\n\t}";
   }
 
