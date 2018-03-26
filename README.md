@@ -1,9 +1,55 @@
 Rope
 ====
-A *rope* is a tree-like data structure that provides a more efficient way of concatenating strings, 
+A **rope** is a tree-like data structure that provides a more efficient way of concatenating strings, 
 with each internal node representing the concatenation of its children, and the leaves consisting of
-flat strings, usually represented as contiguous array of characters.
+flat strings, usually represented as contiguous array of characters.  
 
+The project provides an implementation of **rope** data structure. The current API is inspired by
+the rope implementation in **Raph Levien's [xi-editor]()**. The project doesn't provide all it's 
+operations and optimizations and is solely for my learning purposes.
+
+Usage
+-----
+
+___Note: The API is not fully implemented, and is currently work in progress.___
+
+- Create a rope from string.
+  ```java
+  Rope a = Rope.from("hello");
+  Rope b = Rope.from("world");
+  ```
+
+- Concatenate two Ropes.
+  ```java
+  Rope a = Rope.from("hello");
+  Rope b = Rope.from(" world");
+  Rope c = a.concat(b);
+  assertEquals(c, "hello world");
+  ```
+
+- Get a slice of Rope.
+  ```java
+  Rope a = Rope.from("hello world");
+  Rope b = a.slice(1, 9);
+  assertEquals(b, "ello wor");
+  ```
+- Replace a part of a Rope.
+  ```java
+  Rope a = Rope.from("hello world");
+  Rope b = a.replace(1, 9, "era");
+  assertEquals(b, "herald");
+  ```
+
+- Possibly a builder ??
+  ```java
+  Rope a = new Rope.Builder()
+    .pushString("<<")
+    .pushRope(Rope.from("hello"))
+    .pushString(">>")
+    .build();
+  assertEquals(a, "<<hello>>");
+  ```
+  
 License
 -------
 

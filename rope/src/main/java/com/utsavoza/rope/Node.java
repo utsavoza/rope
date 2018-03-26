@@ -1,8 +1,10 @@
 package com.utsavoza.rope;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -11,7 +13,7 @@ import static com.utsavoza.rope.Util.compare;
 import static com.utsavoza.rope.Util.countNewLines;
 import static com.utsavoza.rope.Util.isCharBoundary;
 
-final class Node {
+public final class Node {
 
   static final int MIN_LEAF = 511;
   static final int MAX_LEAF = 1024;
@@ -165,6 +167,97 @@ final class Node {
     }
   }
 
+  /** TODO Find another way to build a rope in the method */
+  void subsequenceRec(int start, int end) {
+    if (start == 0 && this.length() == end) {
+      // TODO builder.push(self.clone());
+      return;
+    }
+    switch (this.nodeBody.val()) {
+      case LEAF: {
+        String str = ((String) this.nodeBody.val().get());
+        // TODO builder.push(str.substring(start, end));
+        break;
+      }
+
+      case INTERNAL: {
+        @SuppressWarnings("unchecked")
+        List<Node> children = ((List<Node>) this.nodeBody.val().get());
+        int offset = 0;
+        for (Node child : children) {
+          if (end <= offset) {
+            break;
+          }
+          if (offset + child.length() > start) {
+            child.subsequenceRec(Math.max(offset, start) - offset,
+                Math.min(child.length(), end - offset));
+          }
+          offset += child.length();
+        }
+      }
+    }
+  }
+
+  void replace(int start, int end, Node node) {
+  }
+
+  void replaceStr(int start, int end, String s) {
+  }
+
+  Optional<ChildIndexOffset> tryFindChild(List<Node> children, int start, int end) {
+    int offset = 0;
+    int i = 0;
+    while (i < children.size()) {
+      int nextOffset = children.get(i).length() + offset;
+      if (nextOffset >= start) {
+        if (nextOffset >= end) {
+          return Optional.of(new ChildIndexOffset(i, offset));
+        } else {
+          return Optional.empty();
+        }
+      }
+      offset = nextOffset;
+      i += 1;
+    }
+    return Optional.empty();
+  }
+
+  boolean tryReplaceStr(Node node, int start, int end, String s) {
+    if (node.height() == 0) {
+      return tryReplaceLeafStr(node, start, end, s);
+    }
+    // TODO also consider synchronized edit ??
+    List<Node> children = node.getChildren();
+    Optional<ChildIndexOffset> cio = tryFindChild(children, start, end);
+    if (cio.isPresent()) {
+      Node child = children.get(cio.get().index);
+      if (tryReplaceStr(child, start - cio.get().offset, end - cio.get().offset, s)) {
+        int size = children.size() + 1;
+        List<Node> nodes = new ArrayList<>(size);
+        nodes.addAll(children.subList(0, cio.get().index));
+        nodes.add(child);
+        nodes.addAll(children.subList(cio.get().index, children.size()));
+      }
+    }
+    return true;
+  }
+
+  boolean tryReplaceLeafStr(Node node, int start, int end, String s) {
+    if (node.nodeBody.val() != NodeVal.LEAF) {
+      throw new IllegalArgumentException("tryReplaceLeafStr() called with internal node");
+    }
+    int newSize = node.length() + s.length();
+    if (newSize < MIN_LEAF + (end - start) || newSize > MAX_LEAF + (end - start)) {
+      return false;
+    }
+    String leafStr = node.getLeaf();
+    String newStr = leafStr.substring(0, start) + s + leafStr.substring(end);
+    // Node newNode = Node.fromStringPiece(newStr);
+    // TODO should it be synchronized edit ??
+    node.nodeBody.val().instance(newStr);
+    return true;
+  }
+
   int height() {
     return this.nodeBody.height();
   }
@@ -235,5 +328,16 @@ final class Node {
 
   @Override public String toString() {
     return "Node: {" + "\n\t" + this.nodeBody.toString() + "\n}";
+  }
+
+  /** This class solely exists to hold the index and offset of the child node in the tree. */
+  private static class ChildIndexOffset {
+    int index;
+    int offset;
+
+    ChildIndexOffset(int index, int offset) {
+      this.index = index;
+      this.offset = offset;
+    }
   }
 }
