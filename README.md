@@ -5,15 +5,15 @@ with each internal node representing the concatenation of its children, and the 
 flat strings, usually represented as contiguous array of characters.  
 
 The project provides an implementation of **rope** data structure. The current API is inspired by
-the rope implementation in **Raph Levien's [xi-editor]()**. The project doesn't provide all it's 
-operations and optimizations and is solely for my learning purposes.
+the rope implementation in **Raph Levien's [xi-editor](https://github.com/google/xi-editor)**. 
+The project doesn't provide all it's operations and optimizations and is solely for my learning purposes.
 
 Usage
 -----
 
 ___Note: The API is not fully implemented, and is currently work in progress.___
 
-- Create a rope from string.
+- Create a Rope from String.
   ```java
   Rope a = Rope.from("hello");
   Rope b = Rope.from("world");
