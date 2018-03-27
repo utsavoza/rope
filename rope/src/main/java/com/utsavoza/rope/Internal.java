@@ -16,6 +16,6 @@ class Internal implements NodeVal {
   }
 
   @Override public String toString() {
-    return this.children.toString();
+    return "INTERNAL"; // better formatting and output ??
   }
 }

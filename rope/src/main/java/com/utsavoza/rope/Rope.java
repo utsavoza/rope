@@ -21,6 +21,14 @@ package com.utsavoza.rope;
  *   assertEquals(b.toString(), "world!");
  * </pre>
  *
+ * <br>- Concatenate two Ropes.
+ * <pre>
+ *   Rope a = Rope.from("hello");
+ *   Rope b = Rope.from(" world");
+ *   Rope c = a.concat(b);
+ *   assertEquals(c.toString(), "hello world");
+ * </pre>
+ *
  * <br>- Get a slice of a {@link Rope}
  * <pre>
  *   Rope a = Rope.from("hello world");

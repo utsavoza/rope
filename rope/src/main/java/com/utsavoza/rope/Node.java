@@ -108,9 +108,9 @@ final class Node {
         Node newRope = concat(rope1, rope2Children.get(0));
         List<Node> rope2ChildrenSubList = rope2Children.subList(1, rope2Children.size());
         if (newRope.getHeight() == rope2Height - 1) {
-          /* return */ mergeNodes(Collections.singletonList(newRope), rope2ChildrenSubList);
+          return mergeNodes(Collections.singletonList(newRope), rope2ChildrenSubList);
         } else {
-          /* return */ mergeNodes(newRope.getChildren(), rope2ChildrenSubList);
+          return mergeNodes(newRope.getChildren(), rope2ChildrenSubList);
         }
       }
 
@@ -133,9 +133,9 @@ final class Node {
         Node newRope = Node.concat(rope1Children.get(lastChildIndex), rope2);
         List<Node> rope1ChildrenSubList = rope1Children.subList(1, lastChildIndex + 1);
         if (newRope.getHeight() == rope1Height - 1) {
-          /* return */ mergeNodes(rope1ChildrenSubList, Collections.singletonList(newRope));
+          return mergeNodes(rope1ChildrenSubList, Collections.singletonList(newRope));
         } else {
-          /* return */ mergeNodes(rope1ChildrenSubList, newRope.getChildren());
+          return mergeNodes(rope1ChildrenSubList, newRope.getChildren());
         }
       }
 

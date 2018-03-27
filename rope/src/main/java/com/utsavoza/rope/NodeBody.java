@@ -6,7 +6,8 @@ package com.utsavoza.rope;
  * nodes in the tree represents concatenation of its children whereas the
  * leaves consists of flat strings.
  *
- * @see NodeVal
+ * @see Leaf
+ * @see Internal
  */
 final class NodeBody {
 
@@ -46,6 +47,7 @@ final class NodeBody {
     return this.val;
   }
 
+  // could be stricter
   private void nullCheck(Builder builder) {
     if (builder.val == null) {
       throw new IllegalArgumentException("NodeBody val is not assigned");
@@ -66,7 +68,7 @@ final class NodeBody {
     hash += 31 * hash + this.height;
     hash += 31 * hash + this.length;
     hash += 31 * hash + this.newlineCount;
-    hash += 31 * hash + val.hashCode();
+    hash += 31 * hash + this.val.hashCode();
     return hash;
   }
 
