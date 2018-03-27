@@ -144,11 +144,44 @@ final class Node {
     }
   }
 
-  private static int findLeafSplitForMerge(String s) {
+  // Internal use of builder as a mutable utility should not be
+  // reflect publicly and should be highly discouraged. What we
+  // need is an internal data structure to temporarily hold and
+  // maintain the rope as and when it is built recursively.
+  void subsequence(Rope.Builder builder, int start, int end) {
+    if (start == 0 && this.getLength() == end) {
+      builder.push(this);
+      return;
+    }
+    NodeVal val = this.nodeBody.val();
+    if (val instanceof Leaf) {
+      String leafString = (String) val.get();
+      builder.pushShortString(leafString.substring(start, end));
+    } else if (val instanceof Internal) {
+      int offset = 0;
+      @SuppressWarnings("unchecked")
+      List<Node> children = (List<Node>) val.get();
+      for (Node child : children) {
+        if (end <= offset) {
+          break;
+        }
+        if (offset + child.getLength() > start) {
+          int childStart = Math.max(offset, start) - offset;
+          int childEnd = Math.min(child.getLength(), end - offset);
+          child.subsequence(builder, childStart, childEnd);
+        }
+        offset += child.getLength();
+      }
+    } else {
+      throw new IllegalStateException("unreachable state");
+    }
+  }
+
+  static int findLeafSplitForMerge(String s) {
     return findLeafSplit(s, Math.max(MIN_LEAF, s.length() - MAX_LEAF));
   }
 
-  private static int findLeafSplitForBulk(String s) {
+  static int findLeafSplitForBulk(String s) {
     return findLeafSplit(s, MIN_LEAF);
   }
 

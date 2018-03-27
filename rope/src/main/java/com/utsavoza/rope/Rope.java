@@ -1,5 +1,12 @@
 package com.utsavoza.rope;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.utsavoza.rope.Node.MAX_CHILDREN;
+import static com.utsavoza.rope.Node.MAX_LEAF;
+import static com.utsavoza.rope.Node.findLeafSplitForBulk;
+
 /**
  * <p>A <a href="https://en.wikipedia.org/wiki/Rope_(data_structure)">rope</a> is a
  * tree-like data structure that provides a more efficient way of concatenating strings,
@@ -70,5 +77,71 @@ public final class Rope {
 
   public int length() {
     return this.length;
+  }
+
+  /** Builder utility to create an instance of Rope. */
+  public static class Builder {
+
+    private Node root;
+
+    public Builder pushRope(Rope rope) {
+      rope.root.subsequence(this, rope.start, rope.start + rope.length);
+      return this;
+    }
+
+    Builder push(Node node) {
+      if (this.root == null) {
+        this.root = node;
+      } else {
+        this.root = Node.concat(root, node);
+      }
+      return this;
+    }
+
+    Builder pushShortString(String s) {
+      if (s.length() > MAX_LEAF) {
+        throw new IllegalArgumentException("string exceeds MAX_LEAF limit");
+      }
+      return push(Node.fromStringPiece(s));
+    }
+
+    public Builder pushString(String s) {
+      if (s.length() <= MAX_LEAF) {
+        if (!s.isEmpty()) {
+          return pushShortString(s);
+        }
+      }
+      List<List<Node>> stack = new ArrayList<>();
+      while (!s.isEmpty()) {
+        int splitPoint = findLeafSplitForBulk(s);
+        Node newNode = Node.fromStringPiece(s.substring(0, splitPoint));
+        s = s.substring(splitPoint);
+        while (true) {
+          List<Node> lastList = stack.get(stack.size() - 1);
+          Node finalNewNode = newNode;
+          if (lastList.stream().allMatch(node -> node.getHeight() != finalNewNode.getHeight())) {
+            stack.add(new ArrayList<>());
+          }
+          stack.get(stack.size() - 1).add(newNode);
+          if (stack.get(stack.size() - 1).size() < MAX_CHILDREN) {
+            break;
+          }
+          newNode = Node.fromPieces(stack.remove(stack.size() - 1));
+        }
+      }
+      for (List<Node> list : stack) {
+        for (Node node : list) {
+          push(node);
+        }
+      }
+      return this;
+    }
+
+    Node getRootNode() {
+      if (this.root == null) {
+        this.root = Node.fromStringPiece("");
+      }
+      return this.root;
+    }
   }
 }
