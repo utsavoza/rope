@@ -18,7 +18,7 @@ final class Node {
   static final int MIN_CHILDREN = 4;
   static final int MAX_CHILDREN = 8;
 
-  private final NodeBody nodeBody;
+  private NodeBody nodeBody;
 
   Node(NodeBody nodeBody) {
     this.nodeBody = nodeBody;
@@ -144,7 +144,28 @@ final class Node {
     }
   }
 
-  // Internal use of builder as a mutable utility should not be
+  static int findLeafSplitForMerge(String s) {
+    return findLeafSplit(s, Math.max(MIN_LEAF, s.length() - MAX_LEAF));
+  }
+
+  static int findLeafSplitForBulk(String s) {
+    return findLeafSplit(s, MIN_LEAF);
+  }
+
+  private static int findLeafSplit(String s, int minSplit) {
+    int splitPoint = Math.min(MAX_LEAF, s.length() - MIN_LEAF);
+    int newlineCharIndex = s.indexOf(NEW_LINE);
+    if (newlineCharIndex != -1) {
+      return minSplit + newlineCharIndex;
+    } else {
+      while (!isCharBoundary(s, splitPoint)) {
+        splitPoint -= 1;
+      }
+      return splitPoint;
+    }
+  }
+
+  // Internal use of builder as a mutable utility should not
   // reflect publicly and should be highly discouraged. What we
   // need is an internal data structure to temporarily hold and
   // maintain the rope as and when it is built recursively.
@@ -177,25 +198,97 @@ final class Node {
     }
   }
 
-  static int findLeafSplitForMerge(String s) {
-    return findLeafSplit(s, Math.max(MIN_LEAF, s.length() - MAX_LEAF));
-  }
-
-  static int findLeafSplitForBulk(String s) {
-    return findLeafSplit(s, MIN_LEAF);
-  }
-
-  private static int findLeafSplit(String s, int minSplit) {
-    int splitPoint = Math.min(MAX_LEAF, s.length() - MIN_LEAF);
-    int newlineCharIndex = s.indexOf(NEW_LINE);
-    if (newlineCharIndex != -1) {
-      return minSplit + newlineCharIndex;
-    } else {
-      while (!isCharBoundary(s, splitPoint)) {
-        splitPoint -= 1;
-      }
-      return splitPoint;
+  private void replace(int start, int end, Node node) {
+    NodeVal val = node.nodeBody.val();
+    String s = ((String) val.get());
+    if (s.length() < MIN_LEAF) {
+      replaceString(start, end, s);
+      return;
     }
+    Rope.Builder builder = new Rope.Builder();
+    this.subsequence(builder, 0, start);
+    builder.push(node);
+    this.subsequence(builder, end, this.getLength());
+    this.nodeBody = builder.getRootNode().nodeBody;
+  }
+
+  private void replaceString(int start, int end, String s) {
+    if (s.length() < MIN_LEAF && tryReplaceString(start, end, s)) {
+      return;
+    }
+    Rope.Builder builder = new Rope.Builder();
+    this.subsequence(builder, 0, start);
+    builder.pushString(s);
+    this.subsequence(builder, end, this.getLength());
+    this.nodeBody = builder.getRootNode().nodeBody;
+  }
+
+  private boolean tryReplaceLeafString(int start, int end, String s) {
+    if (!this.isLeaf()) {
+      throw new IllegalArgumentException("tryReplaceLeafString() called with internal node");
+    }
+    int newLength = this.getLength() + s.length();
+    if (newLength < MIN_LEAF + (end - start) || newLength > MAX_LEAF + (end - start)) {
+      return false;
+    }
+    String leafString = this.getLeaf();
+    String newString =
+        leafString.substring(0, start) + s + leafString.substring(end, leafString.length());
+    Node newNode = Node.fromStringPiece(newString);
+    this.nodeBody = newNode.nodeBody;
+    return true;
+  }
+
+  private ChildIndexOffset getChildIndexOffset(List<Node> children, int start, int end) {
+    int offset = 0;
+    for (int i = 0; i < children.size(); i++) {
+      int nextOffset = offset + children.get(i).getLength();
+      if (nextOffset >= start) {
+        if (nextOffset >= end) {
+          return new ChildIndexOffset(i, offset);
+        } else {
+          return null;
+        }
+      }
+      offset = nextOffset;
+    }
+    return null;
+  }
+
+  // try to replace the string without changing the tree structure
+  private boolean tryReplaceString(int start, int end, String newString) {
+    if (this.getHeight() == 0) {
+      return tryReplaceLeafString(start, end, newString);
+    }
+
+    // mutate in place
+    boolean success = false;
+    if (this.nodeBody.val() instanceof Internal) {
+      @SuppressWarnings("unchecked")
+      List<Node> children = (List<Node>) this.nodeBody.val().get();
+      ChildIndexOffset childIndexOffset = getChildIndexOffset(children, start, end);
+      if (childIndexOffset != null) {
+        int index = childIndexOffset.index;
+        int offset = childIndexOffset.offset;
+        int oldNewLineCount = children.get(index).getNewlineCount();
+        success = children.get(index).tryReplaceString(start - offset, end - offset, newString);
+        if (success) {
+          this.nodeBody = new NodeBody.Builder()
+              .length(this.getLength() - (end - start) + newString.length())
+              .newlineCount(
+                  this.getNewlineCount() - oldNewLineCount + children.get(index).getNewlineCount())
+              .height(this.getHeight())
+              .val(this.nodeBody.val())
+              .build();
+        }
+      }
+    } else if (this.nodeBody.val() instanceof Leaf) {
+      throw new IllegalStateException("height and node val type are inconsistent");
+    }
+
+    // TODO: try recursing and making a copy if can't mutate in place ??
+
+    return success;
   }
 
   int getHeight() {
@@ -265,5 +358,42 @@ final class Node {
 
   @Override public String toString() {
     return "Node: {" + "\n\t" + this.nodeBody.toString() + "\n}";
+  }
+
+  // This class solely exists to hold the return value getChildIndexOffset()
+  private static class ChildIndexOffset {
+    int index;
+    int offset;
+
+    ChildIndexOffset(int index, int offset) {
+      this.index = index;
+      this.offset = offset;
+    }
+
+    @Override public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (!(obj instanceof ChildIndexOffset)) {
+        return false;
+      }
+      ChildIndexOffset cio = (ChildIndexOffset) obj;
+      return this.index == cio.index
+          && this.offset == cio.offset;
+    }
+
+    @Override public int hashCode() {
+      int hash = 17;
+      hash += 31 * this.index + hash;
+      hash += 31 * this.offset + hash;
+      return hash;
+    }
+
+    @Override public String toString() {
+      return "ChildIndexOffset: {"
+          + "\n\tindex: " + this.index
+          + "\n\toffset: " + this.offset
+          + "\n}";
+    }
   }
 }
