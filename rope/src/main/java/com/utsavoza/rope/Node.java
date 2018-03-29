@@ -13,8 +13,11 @@ import static com.utsavoza.rope.Util.isCharBoundary;
 /** Represents a node in the tree. */
 final class Node {
 
+  // represents string byte length, will remain
+  // inconsistent when using localized strings
   static final int MIN_LEAF = 511;
   static final int MAX_LEAF = 1024;
+
   static final int MIN_CHILDREN = 4;
   static final int MAX_CHILDREN = 8;
 
@@ -63,7 +66,7 @@ final class Node {
     return new Node(nodeBody);
   }
 
-  static Node mergeNodes(List<Node> children1, List<Node> children2) {
+  private static Node mergeNodes(List<Node> children1, List<Node> children2) {
     int totalChildren = children1.size() + children2.size();
     List<Node> children =
         Stream.concat(children1.stream(), children2.stream()).collect(Collectors.toList());
@@ -79,7 +82,7 @@ final class Node {
     }
   }
 
-  static Node mergeLeaves(Node rope1, Node rope2) {
+  private static Node mergeLeaves(Node rope1, Node rope2) {
     if (!rope1.isLeaf() || !rope2.isLeaf()) {
       throw new IllegalArgumentException("mergeLeaves() called with non-leaf node");
     }
@@ -150,7 +153,7 @@ final class Node {
     }
   }
 
-  // should this be used instead of static alternative ??
+  // should this be used instead of its static alternative ??
   Node concat(Node anotherRope) {
     int rope1Height = this.getHeight();
     int rope2Height = anotherRope.getHeight();
@@ -200,7 +203,7 @@ final class Node {
     }
   }
 
-  static int findLeafSplitForMerge(String s) {
+  private static int findLeafSplitForMerge(String s) {
     return findLeafSplit(s, Math.max(MIN_LEAF, s.length() - MAX_LEAF));
   }
 
@@ -443,7 +446,7 @@ final class Node {
     return "Node: {" + "\n\t" + this.nodeBody.toString() + "\n}";
   }
 
-  // This class solely exists to hold the return value getChildIndexOffset()
+  // This class solely exists to hold the return value of getChildIndexOffset()
   static class ChildIndexOffset {
     int index;
     int offset;

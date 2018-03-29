@@ -1,5 +1,7 @@
 package com.utsavoza.rope;
 
+import java.util.List;
+
 /**
  * Represents the body of a node in the tree. The current implementation
  * is {@link Rope} specific, and can possibly be generalized. The internal
@@ -86,33 +88,33 @@ final class NodeBody {
         && otherNodeBody.val.equals(this.val);
   }
 
-  public static class Builder {
+  static class Builder {
     private int height;
     private int length;
     private int newlineCount;
     private NodeVal val;
 
-    public Builder height(int height) {
+    Builder height(int height) {
       this.height = height;
       return this;
     }
 
-    public Builder length(int length) {
+    Builder length(int length) {
       this.length = length;
       return this;
     }
 
-    public Builder newlineCount(int newlineCount) {
+    Builder newlineCount(int newlineCount) {
       this.newlineCount = newlineCount;
       return this;
     }
 
-    public Builder val(NodeVal val) {
+    Builder val(NodeVal val) {
       this.val = val;
       return this;
     }
 
-    public NodeBody build() {
+    NodeBody build() {
       return new NodeBody(this);
     }
   }

@@ -11,12 +11,14 @@ The project doesn't provide all it's operations and optimizations and is solely 
 Usage
 -----
 
-___Note: The API is not fully implemented, and is currently work in progress.___
+___Note: The API is instable, and is currently work in progress.___
 
 - Create a Rope from String.
   ```java
   Rope a = Rope.from("hello");
   Rope b = Rope.from("world");
+  assertEquals(a.toString(), "hello");
+  assertEquals(b.toString(), "world");
   ```
 
 - Concatenate two Ropes.
@@ -24,30 +26,31 @@ ___Note: The API is not fully implemented, and is currently work in progress.___
   Rope a = Rope.from("hello");
   Rope b = Rope.from(" world");
   Rope c = a.concat(b);
-  assertEquals(c, "hello world");
+  assertEquals(c.toString(), "hello world");
+  ```
+
+- Replace a part of a Rope.
+  ```java
+  Rope a = Rope.from("hello world");
+  Rope b = a.replace(1, 9, "era");
+  assertEquals(b.toString(), "herald");
   ```
 
 - Get a slice of Rope.
   ```java
   Rope a = Rope.from("hello world");
   Rope b = a.slice(1, 9);
-  assertEquals(b, "ello wor");
+  assertEquals(b.toString(), "ello wor");
   ```
-- Replace a part of a Rope.
-  ```java
-  Rope a = Rope.from("hello world");
-  Rope b = a.replace(1, 9, "era");
-  assertEquals(b, "herald");
-  ```
-
-- Possibly a builder ??
+  
+- Construct a Rope using Builder utility
   ```java
   Rope a = new Rope.Builder()
     .pushString("<<")
     .pushRope(Rope.from("hello"))
     .pushString(">>")
     .build();
-  assertEquals(a, "<<hello>>");
+  assertEquals(a.toString(), "<<hello>>");
   ```
   
 License

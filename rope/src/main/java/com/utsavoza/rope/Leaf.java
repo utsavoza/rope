@@ -16,4 +16,19 @@ class Leaf implements NodeVal {
   @Override public String toString() {
     return this.val;
   }
+
+  @Override public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof Leaf)) {
+      return false;
+    }
+    Leaf otherLeaf = (Leaf) obj;
+    return this.val.equals(otherLeaf.val);
+  }
+
+  @Override public int hashCode() {
+    return this.val.hashCode();
+  }
 }

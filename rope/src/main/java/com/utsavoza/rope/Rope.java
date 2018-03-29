@@ -152,6 +152,27 @@ public final class Rope {
     }
   }
 
+  @Override public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof Rope)) {
+      return false;
+    }
+    Rope otherRope = (Rope) obj;
+    return this.length == otherRope.length
+        && this.start == otherRope.start
+        && this.root.equals(otherRope.root);
+  }
+
+  @Override public int hashCode() {
+    int hash = 17;
+    hash += 31 * this.length + hash;
+    hash += 31 * this.start + hash;
+    hash += 31 * this.root.hashCode() + hash;
+    return hash;
+  }
+
   /** Builder utility to create an instance of Rope. */
   public static class Builder {
 

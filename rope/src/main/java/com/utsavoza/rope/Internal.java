@@ -18,4 +18,21 @@ class Internal implements NodeVal {
   @Override public String toString() {
     return "INTERNAL"; // better formatting and output ??
   }
+
+  @Override public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof Internal)) {
+      return false;
+    }
+    Internal otherNode = (Internal) obj;
+    return this.children.equals(otherNode.children);
+  }
+
+  @Override public int hashCode() {
+    int hash = 17;
+    hash += 31 * this.children.hashCode() + hash;
+    return hash;
+  }
 }
