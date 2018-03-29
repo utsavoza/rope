@@ -261,7 +261,7 @@ final class Node {
     NodeVal val = node.nodeBody.val();
     String s = ((String) val.get());
     if (s.length() < MIN_LEAF) {
-      replaceString(start, end, s);
+      replaceString(start, end, s, false);
       return;
     }
     Rope.Builder builder = new Rope.Builder();
@@ -271,8 +271,8 @@ final class Node {
     this.nodeBody = builder.getRootNode().nodeBody;
   }
 
-  void replaceString(int start, int end, String s) {
-    if (s.length() < MIN_LEAF && tryReplaceString(start, end, s)) {
+  void replaceString(int start, int end, String s, boolean tryReplaceInplace) {
+    if (s.length() < MIN_LEAF && tryReplaceInplace && tryReplaceString(start, end, s)) {
       return;
     }
     Rope.Builder builder = new Rope.Builder();

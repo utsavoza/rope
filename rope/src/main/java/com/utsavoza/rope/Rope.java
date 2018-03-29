@@ -121,10 +121,11 @@ public final class Rope {
 
   /** Replace the range [start, end) from the Rope with the given string. */
   public Rope replace(int start, int end, String newString) {
-    // does a trivial operation worth making a new rope copy ??
+    // is a trivial operation worth making a new rope copy ??
     if (this.isFull()) {
       Node newRoot = new Node(this.root.getNodeBody());
-      newRoot.replaceString(start, end, newString);
+      // defaults to avoiding replacing in place
+      newRoot.replaceString(start, end, newString, false);
       return Rope.fromNode(newRoot);
     } else {
       Rope.Builder builder = new Rope.Builder();
