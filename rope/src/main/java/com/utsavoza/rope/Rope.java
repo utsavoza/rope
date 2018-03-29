@@ -1,11 +1,13 @@
 package com.utsavoza.rope;
 
+import com.utsavoza.rope.Node.ChildIndexOffset;
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.utsavoza.rope.Node.MAX_CHILDREN;
 import static com.utsavoza.rope.Node.MAX_LEAF;
 import static com.utsavoza.rope.Node.findLeafSplitForBulk;
+import static com.utsavoza.rope.Node.getChildIndexOffset;
 
 /**
  * <p>A <a href="https://en.wikipedia.org/wiki/Rope_(data_structure)">rope</a> is a
@@ -71,6 +73,21 @@ public final class Rope {
     this.length = length;
   }
 
+  /** Creates a Rope from the given String. */
+  public static Rope from(String s) {
+    return Rope.fromNode(Node.fromString(s));
+  }
+
+  private static Rope fromNode(Node node) {
+    return new Rope(node, 0, node.getLength());
+  }
+
+  private static String extractStringFrom(Rope rope) {
+    StringBuilder sb = new StringBuilder();
+    rope.toStringRec(sb);
+    return sb.toString();
+  }
+
   private boolean isFull() {
     return this.start == 0 && this.length == this.root.getLength();
   }
@@ -78,6 +95,61 @@ public final class Rope {
   /** Returns the length of Rope. */
   public int length() {
     return this.length;
+  }
+
+  /** Returns a slice of rope from range [start, end). */
+  public Rope slice(int start, int end) {
+    // TODO: sanity checks and correctness?
+    // Possible use of Interval ?
+    Node root = this.root;
+    start += this.start;
+    end += this.start;
+    while (root.getHeight() > 0) {
+      ChildIndexOffset indexOffset = getChildIndexOffset(root.getChildren(), start, end);
+      if (indexOffset != null) {
+        int index = indexOffset.index;
+        int offset = indexOffset.offset;
+        root = root.getChildren().get(index);
+        start -= offset;
+        end -= offset;
+      } else {
+        break;
+      }
+    }
+    return new Rope(root, start, end - start);
+  }
+
+  /** Replace the range [start, end) from the Rope with the given string. */
+  public Rope replace(int start, int end, String newString) {
+    // does a trivial operation worth making a new rope copy ??
+    if (this.isFull()) {
+      Node newRoot = new Node(this.root.getNodeBody());
+      newRoot.replaceString(start, end, newString);
+      return Rope.fromNode(newRoot);
+    } else {
+      Rope.Builder builder = new Rope.Builder();
+      this.root.subsequence(builder, this.start, this.start + start);
+      builder.pushString(newString);
+      this.root.subsequence(builder, this.start + end, this.start + this.length);
+      return builder.build();
+    }
+  }
+
+  public Rope concat(Rope anotherRope) {
+    Node newRoot = new Node(this.root.getNodeBody());
+    return Rope.fromNode(newRoot.concat(anotherRope.root));
+  }
+
+  private void toStringRec(StringBuilder sb) {
+    this.root.toStringRec(sb);
+  }
+
+  @Override public String toString() {
+    if (this.isFull()) {
+      return this.root.getString();
+    } else {
+      return extractStringFrom(this);
+    }
   }
 
   /** Builder utility to create an instance of Rope. */
@@ -143,6 +215,10 @@ public final class Rope {
         this.root = Node.fromStringPiece("");
       }
       return this.root;
+    }
+
+    public Rope build() {
+      return Rope.fromNode(getRootNode());
     }
   }
 }

@@ -24,6 +24,12 @@ final class Node {
     this.nodeBody = nodeBody;
   }
 
+  static Node fromString(String s) {
+    Rope.Builder builder = new Rope.Builder();
+    builder.pushString(s);
+    return builder.getRootNode();
+  }
+
   static Node fromStringPiece(String piece) {
     if (piece.length() > MAX_LEAF) {
       throw new IllegalArgumentException("String piece exceeds MAX_LEAF limit");
@@ -144,6 +150,56 @@ final class Node {
     }
   }
 
+  // should this be used instead of static alternative ??
+  Node concat(Node anotherRope) {
+    int rope1Height = this.getHeight();
+    int rope2Height = anotherRope.getHeight();
+
+    switch (compare(rope1Height, rope2Height)) {
+      case LESS: {
+        List<Node> rope2Children = anotherRope.getChildren();
+        if (rope1Height == rope2Height - 1 && this.isValidNode()) {
+          return mergeNodes(Collections.singletonList(this), rope2Children);
+        }
+        Node newRope = concat(this, rope2Children.get(0));
+        List<Node> rope2ChildrenSubList = rope2Children.subList(1, rope2Children.size());
+        if (newRope.getHeight() == rope2Height - 1) {
+          return mergeNodes(Collections.singletonList(newRope), rope2ChildrenSubList);
+        } else {
+          return mergeNodes(newRope.getChildren(), rope2ChildrenSubList);
+        }
+      }
+
+      case EQUAL: {
+        if (this.isValidNode() && anotherRope.isValidNode()) {
+          return Node.fromPieces(Arrays.asList(this, anotherRope));
+        }
+        if (rope1Height == 0) {
+          return mergeLeaves(this, anotherRope);
+        }
+        return mergeNodes(this.getChildren(), anotherRope.getChildren());
+      }
+
+      case GREATER: {
+        List<Node> rope1Children = this.getChildren();
+        if (rope2Height == rope1Height - 1) {
+          return Node.mergeNodes(rope1Children, Collections.singletonList(anotherRope));
+        }
+        int lastChildIndex = rope1Children.size() - 1;
+        Node newRope = Node.concat(rope1Children.get(lastChildIndex), anotherRope);
+        List<Node> rope1ChildrenSubList = rope1Children.subList(1, lastChildIndex + 1);
+        if (newRope.getHeight() == rope1Height - 1) {
+          return mergeNodes(rope1ChildrenSubList, Collections.singletonList(newRope));
+        } else {
+          return mergeNodes(rope1ChildrenSubList, newRope.getChildren());
+        }
+      }
+
+      default:
+        throw new IllegalStateException("unreachable state");
+    }
+  }
+
   static int findLeafSplitForMerge(String s) {
     return findLeafSplit(s, Math.max(MIN_LEAF, s.length() - MAX_LEAF));
   }
@@ -212,7 +268,7 @@ final class Node {
     this.nodeBody = builder.getRootNode().nodeBody;
   }
 
-  private void replaceString(int start, int end, String s) {
+  void replaceString(int start, int end, String s) {
     if (s.length() < MIN_LEAF && tryReplaceString(start, end, s)) {
       return;
     }
@@ -239,7 +295,7 @@ final class Node {
     return true;
   }
 
-  private ChildIndexOffset getChildIndexOffset(List<Node> children, int start, int end) {
+  static ChildIndexOffset getChildIndexOffset(List<Node> children, int start, int end) {
     int offset = 0;
     for (int i = 0; i < children.size(); i++) {
       int nextOffset = offset + children.get(i).getLength();
@@ -388,7 +444,7 @@ final class Node {
   }
 
   // This class solely exists to hold the return value getChildIndexOffset()
-  private static class ChildIndexOffset {
+  static class ChildIndexOffset {
     int index;
     int offset;
 
