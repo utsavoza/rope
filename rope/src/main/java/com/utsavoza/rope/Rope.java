@@ -75,6 +75,7 @@ public final class Rope {
     return this.start == 0 && this.length == this.root.getLength();
   }
 
+  /** Returns the length of Rope. */
   public int length() {
     return this.length;
   }

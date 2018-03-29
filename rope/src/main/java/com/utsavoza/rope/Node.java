@@ -291,6 +291,33 @@ final class Node {
     return success;
   }
 
+  void toStringRec(StringBuilder sb) {
+    if (this.nodeBody.val() instanceof Leaf) {
+      String val = getLeaf();
+      sb.append(val);
+    } else if (this.nodeBody.val() instanceof Internal) {
+      List<Node> children = getChildren();
+      for (Node child : children) {
+        child.toStringRec(sb);
+      }
+    } else {
+      throw new IllegalStateException("unreachable state");
+    }
+  }
+
+  String getString() {
+    if (this.getHeight() == 0) {
+      if (nodeBody.val() instanceof Leaf) {
+        return getLeaf();
+      } else {
+        throw new IllegalStateException("height and node type inconsistent");
+      }
+    }
+    StringBuilder sb = new StringBuilder();
+    this.toStringRec(sb);
+    return sb.toString();
+  }
+
   int getHeight() {
     return this.nodeBody.height();
   }
