@@ -3,7 +3,7 @@ package com.utsavoza.rope;
 import java.util.List;
 
 /** The internal nodes in the tree represents concatenation of its children. */
-class Internal implements NodeVal {
+final class Internal implements NodeVal {
 
   private List<Node> children;
 
@@ -16,7 +16,7 @@ class Internal implements NodeVal {
   }
 
   @Override public String toString() {
-    return "INTERNAL"; // better formatting and output ??
+    return "INTERNAL " + this.children.size(); // better formatting and output ??
   }
 
   @Override public boolean equals(Object obj) {

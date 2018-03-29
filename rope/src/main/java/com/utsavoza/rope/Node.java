@@ -213,7 +213,7 @@ final class Node {
 
   private static int findLeafSplit(String s, int minSplit) {
     int splitPoint = Math.min(MAX_LEAF, s.length() - MIN_LEAF);
-    int newlineCharIndex = s.indexOf(NEW_LINE);
+    int newlineCharIndex = s.substring(minSplit - 1, splitPoint).lastIndexOf('\n');
     if (newlineCharIndex != -1) {
       return minSplit + newlineCharIndex;
     } else {

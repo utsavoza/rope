@@ -1,7 +1,5 @@
 package com.utsavoza.rope;
 
-import java.util.List;
-
 /**
  * Represents the body of a node in the tree. The current implementation
  * is {@link Rope} specific, and can possibly be generalized. The internal

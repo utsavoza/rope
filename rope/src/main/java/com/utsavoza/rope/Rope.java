@@ -17,9 +17,10 @@ import static com.utsavoza.rope.Node.getChildIndexOffset;
  * characters.
  *
  * <p>Most operations (like insert, delete, substring) are O(log n). The following
- * implementation provides immutable version of Ropes (also known as
+ * implementation intends to provide immutable version of Ropes (also known as
  * <a href="https://en.wikipedia.org/wiki/Persistent_data_structure">persistent</a>.
- * Ideally, if there are many copies of similar strings, the common parts are shared.
+ * Ideally, if there are many copies of similar strings, the common parts should be
+ * shared.
  *
  * <p><strong>Examples: (includes a rough intended API)</strong>
  * <br>- Create a {@link Rope} from {@link String}
@@ -52,7 +53,7 @@ import static com.utsavoza.rope.Node.getChildIndexOffset;
  *   assertEquals(b.toString(), "herald");
  * </pre>
  *
- * <br>- Possibly ??
+ * <br>- Rope builder utility
  * <pre>
  *   Rope a = new Rope.Builder()
  *      .pushString("<<")
@@ -92,7 +93,6 @@ public final class Rope {
     return this.start == 0 && this.length == this.root.getLength();
   }
 
-  /** Returns the length of Rope. */
   public int length() {
     return this.length;
   }
@@ -183,22 +183,6 @@ public final class Rope {
       return this;
     }
 
-    Builder push(Node node) {
-      if (this.root == null) {
-        this.root = node;
-      } else {
-        this.root = Node.concat(root, node);
-      }
-      return this;
-    }
-
-    Builder pushShortString(String s) {
-      if (s.length() > MAX_LEAF) {
-        throw new IllegalArgumentException("string exceeds MAX_LEAF limit");
-      }
-      return push(Node.fromStringPiece(s));
-    }
-
     public Builder pushString(String s) {
       if (s.length() <= MAX_LEAF) {
         if (!s.isEmpty()) {
@@ -207,13 +191,15 @@ public final class Rope {
       }
       List<List<Node>> stack = new ArrayList<>();
       while (!s.isEmpty()) {
-        int splitPoint = findLeafSplitForBulk(s);
+        int splitPoint = s.length() > MAX_LEAF ? findLeafSplitForBulk(s) : s.length();
         Node newNode = Node.fromStringPiece(s.substring(0, splitPoint));
         s = s.substring(splitPoint);
         while (true) {
-          List<Node> lastList = stack.get(stack.size() - 1);
           Node finalNewNode = newNode;
-          if (lastList.stream().allMatch(node -> node.getHeight() != finalNewNode.getHeight())) {
+          if (stack.size() == 0 ||
+              stack.get(stack.size() - 1)
+                  .stream()
+                  .allMatch(node -> node.getHeight() != finalNewNode.getHeight())) {
             stack.add(new ArrayList<>());
           }
           stack.get(stack.size() - 1).add(newNode);
@@ -229,6 +215,22 @@ public final class Rope {
         }
       }
       return this;
+    }
+
+    Builder push(Node node) {
+      if (this.root == null) {
+        this.root = node;
+      } else {
+        this.root = Node.concat(root, node);
+      }
+      return this;
+    }
+
+    Builder pushShortString(String s) {
+      if (s.length() > MAX_LEAF) {
+        throw new IllegalArgumentException("string exceeds MAX_LEAF limit");
+      }
+      return push(Node.fromStringPiece(s));
     }
 
     Node getRootNode() {
