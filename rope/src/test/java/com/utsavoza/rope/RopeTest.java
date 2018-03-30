@@ -75,6 +75,7 @@ public class RopeTest {
     Rope b = a.replace(1, 9, "era");
     assertEquals(b.toString(), "herald");
     assertEquals(a.toString(), "hello world");
+    assertNotEquals(a, b);
 
     Rope license = Rope.from(text);
     Rope newLicense = license.replace(32, 40, "UTSAVOZA");
@@ -85,21 +86,23 @@ public class RopeTest {
     assertNotEquals(license, newLicense);
   }
 
+  @Test public void testSlice() {
+    Rope a = Rope.from("hello world");
+    Rope b = a.slice(1, 9);
+    assertEquals(b.toString(), "ello wor");
+    assertNotEquals(a, b);
+
+    Rope license = Rope.from(text);
+    Rope title = license.slice(0, 10);
+    assertEquals(title.toString(), "MIT License");
+    assertNotEquals(title, license);
+  }
+
   @Test public void testEquals() {
     Rope a = Rope.from("hello");
     Rope b = Rope.from("world");
     Rope c = Rope.from("hello");
     assertNotEquals(a, b);
     assertEquals(a, c);
-  }
-
-  @Test public void testSlice() {
-    Rope a = Rope.from("hello world");
-    Rope b = a.slice(1, 9);
-    assertEquals(b.toString(), "ello wor");
-
-    Rope license = Rope.from(text);
-    Rope title = license.slice(0, 10);
-    assertEquals(title.toString(), "MIT License");
   }
 }

@@ -22,7 +22,7 @@ import static com.utsavoza.rope.Node.getChildIndexOffset;
  * Ideally, if there are many copies of similar strings, the common parts should be
  * shared.
  *
- * <p><strong>Examples: (includes a rough intended API)</strong>
+ * <p><strong>Examples:</strong>
  * <br>- Create a {@link Rope} from {@link String}
  * <pre>
  *   Rope a = Rope.from("hello");
@@ -74,7 +74,7 @@ public final class Rope {
     this.length = length;
   }
 
-  /** Creates a Rope from the given String. */
+  /** Create a Rope from the given String. */
   public static Rope from(String s) {
     return Rope.fromNode(Node.fromString(s));
   }
@@ -93,14 +93,24 @@ public final class Rope {
     return this.start == 0 && this.length == this.root.getLength();
   }
 
+  /**
+   * Returns the length of the string this rope holds. The length
+   * is equal to number of Unicode code units in the string. The value
+   * returned is equivalent of value returned by {@link String#length()}.
+   */
   public int length() {
     return this.length;
   }
 
-  /** Returns a slice of rope from range [start, end). */
+  /**
+   * Returns a new rope that is a slice of this rope of interval
+   * [start, end). The result is equivalent to that of {@link String#substring(int, int)}.
+   */
   public Rope slice(int start, int end) {
-    // TODO: sanity checks ?
-    // Possible use of Interval ?
+    if (start < this.start || end > this.start + this.length) {
+      throw new IllegalArgumentException(
+          "[" + start + ", " + end + ") interval if out of bounds for current rope");
+    }
     Node root = this.root;
     start += this.start;
     end += this.start;
@@ -116,12 +126,21 @@ public final class Rope {
         break;
       }
     }
+    // Could be optimized by implementing custom iterator for rope ?
     return Rope.from(root.getString().substring(start, end - start + 1));
   }
 
-  /** Replace the range [start, end) from the Rope with the given string. */
+  /**
+   * Replace the range of unicode code points in range [start, end) from the
+   * Rope with the given string. Returns a new rope resulting from replacing
+   * the given range with {@code newString}.
+   */
   public Rope replace(int start, int end, String newString) {
-    // is a trivial operation worth making a new rope copy ??
+    if (start < this.start || end > this.start + this.length) {
+      throw new IllegalArgumentException(
+          "[" + start + ", " + end + ") interval if out of bounds for current rope");
+    }
+    // is a trivial replace operation worth making a new rope copy ??
     if (this.isFull()) {
       Node newRoot = new Node(this.root.getNodeBody());
       // defaults to avoiding replacing in place
@@ -136,13 +155,31 @@ public final class Rope {
     }
   }
 
+  /**
+   * Concatenate {@code anotherRope} with this rope, and return a new rope
+   * resulting from the concatenation.
+   */
   public Rope concat(Rope anotherRope) {
+    if (anotherRope == null) {
+      // should this be handled silently?
+      throw new IllegalArgumentException("Attempting to concat this rope with null");
+    }
     Node newRoot = new Node(this.root.getNodeBody());
     return Rope.fromNode(newRoot.concat(anotherRope.root));
   }
 
   private void toStringRec(StringBuilder sb) {
     this.root.toStringRec(sb);
+  }
+
+  private Rope normalize() {
+    if (this.isFull()) {
+      return this;
+    } else {
+      return new Rope.Builder()
+          .pushRope(this)
+          .build();
+    }
   }
 
   @Override public String toString() {

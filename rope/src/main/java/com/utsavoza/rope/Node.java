@@ -14,7 +14,7 @@ import static com.utsavoza.rope.Util.isCharBoundary;
 final class Node {
 
   // represents string byte length, will remain
-  // inconsistent when using localized strings
+  // inconsistent when using localized strings.
   static final int MIN_LEAF = 511;
   static final int MAX_LEAF = 1024;
 
