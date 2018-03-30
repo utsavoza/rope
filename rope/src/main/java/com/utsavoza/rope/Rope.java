@@ -99,7 +99,7 @@ public final class Rope {
 
   /** Returns a slice of rope from range [start, end). */
   public Rope slice(int start, int end) {
-    // TODO: sanity checks and correctness?
+    // TODO: sanity checks ?
     // Possible use of Interval ?
     Node root = this.root;
     start += this.start;
@@ -116,7 +116,7 @@ public final class Rope {
         break;
       }
     }
-    return new Rope(root, start, end - start);
+    return Rope.from(root.getString().substring(start, end - start + 1));
   }
 
   /** Replace the range [start, end) from the Rope with the given string. */

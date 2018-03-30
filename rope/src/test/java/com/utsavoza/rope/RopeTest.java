@@ -8,7 +8,7 @@ import static org.junit.Assert.assertNotEquals;
 public class RopeTest {
 
   private String text =
-      "MIT License\n"
+            "MIT License\n"
           + "\n"
           + "Copyright (c) 2018 utsavoza\n"
           + "\n"
@@ -91,5 +91,15 @@ public class RopeTest {
     Rope c = Rope.from("hello");
     assertNotEquals(a, b);
     assertEquals(a, c);
+  }
+
+  @Test public void testSlice() {
+    Rope a = Rope.from("hello world");
+    Rope b = a.slice(1, 9);
+    assertEquals(b.toString(), "ello wor");
+
+    Rope license = Rope.from(text);
+    Rope title = license.slice(0, 10);
+    assertEquals(title.toString(), "MIT License");
   }
 }
