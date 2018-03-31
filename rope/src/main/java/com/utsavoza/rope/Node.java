@@ -13,8 +13,8 @@ import static com.utsavoza.rope.Util.isCharBoundary;
 /** Represents a node in the tree. */
 final class Node {
 
-  // represents string byte length, will remain
-  // inconsistent when using localized strings.
+  // represents string byte length, will currently
+  // remain inconsistent when using localized strings.
   static final int MIN_LEAF = 511;
   static final int MAX_LEAF = 1024;
 
@@ -41,7 +41,7 @@ final class Node {
     NodeBody nodeBody = new NodeBody.Builder()
         .height(0)
         .length(piece.length())
-        .newlineCount(Util.countNewLines(piece))
+        .newlineCount(Util.countOccurrence(piece, NEW_LINE))
         .val(new Leaf(piece))
         .build();
 
@@ -66,7 +66,7 @@ final class Node {
     return new Node(nodeBody);
   }
 
-  private static Node mergeNodes(List<Node> children1, List<Node> children2) {
+  static Node mergeNodes(List<Node> children1, List<Node> children2) {
     int totalChildren = children1.size() + children2.size();
     List<Node> children =
         Stream.concat(children1.stream(), children2.stream()).collect(Collectors.toList());
@@ -82,7 +82,7 @@ final class Node {
     }
   }
 
-  private static Node mergeLeaves(Node rope1, Node rope2) {
+  static Node mergeLeaves(Node rope1, Node rope2) {
     if (!rope1.isLeaf() || !rope2.isLeaf()) {
       throw new IllegalArgumentException("mergeLeaves() called with non-leaf node");
     }

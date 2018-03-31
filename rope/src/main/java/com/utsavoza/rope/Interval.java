@@ -1,10 +1,12 @@
 package com.utsavoza.rope;
 
+/** A general utility class to represent intervals. */
 public final class Interval {
 
   private final int start;
   private final int end;
 
+  // a value mapping function arg would make it more general?
   // start = 2 * actualValue + 1 if open:
   // end   = 2 * actualValue + 1 if closed
   private Interval(int start, boolean startInclusive, int end, boolean endInclusive) {

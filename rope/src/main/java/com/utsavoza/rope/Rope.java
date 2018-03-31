@@ -43,7 +43,7 @@ import static com.utsavoza.rope.Node.getChildIndexOffset;
  * <pre>
  *   Rope a = Rope.from("hello world");
  *   Rope b = a.slice(1, 9);
- *   assertEquals(b.toString(), "ello wor");
+ *   assertEquals(b.toString(), "ello wo");
  * </pre>
  *
  * <br>- Replace a part of a {@link Rope}
@@ -96,24 +96,24 @@ public final class Rope {
   /**
    * Returns the length of the string this rope holds. The length
    * is equal to number of Unicode code units in the string. The value
-   * returned is equivalent of value returned by {@link String#length()}.
+   * returned is equivalent to that returned by {@link String#length()}.
    */
   public int length() {
     return this.length;
   }
 
   /**
-   * Returns a new rope that is a slice of this rope of interval
+   * Returns a new rope that is a slice of this rope from interval
    * [start, end). The result is equivalent to that of {@link String#substring(int, int)}.
    */
   public Rope slice(int start, int end) {
     if (start < this.start || end > this.start + this.length) {
       throw new IllegalArgumentException(
-          "[" + start + ", " + end + ") interval if out of bounds for current rope");
+          "[" + start + ", " + end + ") interval is out of bounds for current rope");
     }
     Node root = this.root;
     start += this.start;
-    end += this.start;
+    end += this.start - 1;
     while (root.getHeight() > 0) {
       ChildIndexOffset indexOffset = getChildIndexOffset(root.getChildren(), start, end);
       if (indexOffset != null) {
@@ -138,7 +138,7 @@ public final class Rope {
   public Rope replace(int start, int end, String newString) {
     if (start < this.start || end > this.start + this.length) {
       throw new IllegalArgumentException(
-          "[" + start + ", " + end + ") interval if out of bounds for current rope");
+          "[" + start + ", " + end + ") interval is out of bounds for current rope");
     }
     // is a trivial replace operation worth making a new rope copy ??
     if (this.isFull()) {
