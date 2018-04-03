@@ -53,6 +53,8 @@ public class NodeTest {
     Node third = Node.fromString(text.substring(2 * MAX_LEAF));
     Node parent = Node.mergeNodes(Arrays.asList(first, second), Collections.singletonList(third));
     assertEquals(parent, readme);
+    parent = Node.mergeNodes(Collections.singletonList(first), Arrays.asList(second, third));
+    assertEquals(parent, readme);
   }
 
   @Test public void testConcat() {

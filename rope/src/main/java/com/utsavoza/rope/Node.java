@@ -33,6 +33,7 @@ final class Node {
     return builder.getRootNode();
   }
 
+  /** Returns a {@link Leaf} node which holds a flat string {@code piece} */
   static Node fromStringPiece(String piece) {
     if (piece.length() > MAX_LEAF) {
       throw new IllegalArgumentException("String piece exceeds MAX_LEAF limit");
@@ -48,6 +49,7 @@ final class Node {
     return new Node(nodeBody);
   }
 
+  /** Returns an {@link Internal} node whose children are {@code pieces}. */
   static Node fromPieces(List<Node> pieces) {
     if (pieces.size() < 2 || pieces.size() > MAX_CHILDREN) {
       throw new IllegalArgumentException("Nodes exceeds MAX_CHILDREN limit");
@@ -66,6 +68,13 @@ final class Node {
     return new Node(nodeBody);
   }
 
+  /**
+   * Merge given lists of nodes and return {@link Internal} node which is parent of
+   * {@code children1} and {@code children2}. If the total number of children is less
+   * than equal to {@code MAX_CHILDREN}, then it simply returns a parent node of
+   * {@code children1} and {@code children2}. However, if the total number of children
+   * exceeds {@code MAX_CHILDREN}, then we consider splitting the combined list first.
+   */
   static Node mergeNodes(List<Node> children1, List<Node> children2) {
     int totalChildren = children1.size() + children2.size();
     List<Node> children =
@@ -89,8 +98,8 @@ final class Node {
     if (rope1.getLength() >= MIN_LEAF && rope2.getLength() >= MIN_LEAF) {
       return Node.fromPieces(Arrays.asList(rope1, rope2));
     }
-    String rope1String = ((String) rope1.nodeBody.val().get());
-    String rope2String = ((String) rope2.nodeBody.val().get());
+    String rope1String = rope1.getLeaf();
+    String rope2String = rope2.getLeaf();
     String ropeString = rope1String + rope2String;
     if (ropeString.length() <= MAX_LEAF) {
       return Node.fromStringPiece(ropeString);
@@ -104,6 +113,7 @@ final class Node {
     }
   }
 
+  /** Concatenate two nodes and returns a parent node that holds the result of the operation. */
   static Node concat(Node rope1, Node rope2) {
     int rope1Height = rope1.getHeight();
     int rope2Height = rope2.getHeight();
@@ -224,11 +234,16 @@ final class Node {
     }
   }
 
-  // Internal use of builder as a mutable utility should not
-  // reflect publicly and should be highly discouraged. What we
-  // need is an internal data structure to temporarily hold and
-  // maintain the rope as and when it is built recursively.
+  /**
+   * Finds the subsequence of {@link Rope} from interval [start, end) and pushes
+   * the result into the {@link Rope.Builder}. The current implementation utilizes the
+   * {@link Rope.Builder} as a mutable entity internally.
+   */
   void subsequence(Rope.Builder builder, int start, int end) {
+    // Internal use of builder as a mutable utility should not
+    // reflect publicly and should be highly discouraged. What we
+    // need is an internal data structure to temporarily hold and
+    // maintain the rope as and when it is built recursively.
     if (start == 0 && this.getLength() == end) {
       builder.push(this);
       return;
@@ -257,6 +272,12 @@ final class Node {
     }
   }
 
+  /**
+   * Replace the interval [start, end) in this {@link Rope} with the given {@link Node}.
+   * The current implementation replaces the {@link NodeBody} of this {@link Node} with a
+   * new {@link NodeBody}. The immutability is maintained by calling this method on the
+   * copy of this {@link Node}.
+   */
   private void replace(int start, int end, Node node) {
     NodeVal val = node.nodeBody.val();
     String s = ((String) val.get());
@@ -271,6 +292,12 @@ final class Node {
     this.nodeBody = builder.getRootNode().nodeBody;
   }
 
+  /**
+   * Replace the interval [start, end) in this {@link Rope} with the given String {@code s}.
+   * The current implementation replaces the {@link NodeBody} of this {@link Node} with a new
+   * {@link NodeBody}. The immutability is maintained by calling this method on the copy of
+   * this {@link Node}. Currently, the operation avoids replacing in place by default.
+   */
   void replaceString(int start, int end, String s, boolean tryReplaceInplace) {
     if (s.length() < MIN_LEAF && tryReplaceInplace && tryReplaceString(start, end, s)) {
       return;
@@ -282,6 +309,13 @@ final class Node {
     this.nodeBody = builder.getRootNode().nodeBody;
   }
 
+  /**
+   * Try to replace the interval [start, end) in this Rope <b>in place</b> with the given
+   * String {@code s}. Instead of replacing the {@link NodeBody} of this {@link Node},
+   * the method tries to replace the interval [start, end) in this {@link Node}'s
+   * {@link NodeBody}. The immutability isn't preserved even if this method is called
+   * on this {@link Node}'s copy.
+   */
   private boolean tryReplaceLeafString(int start, int end, String s) {
     if (!this.isLeaf()) {
       throw new IllegalArgumentException("tryReplaceLeafString() called with internal node");
@@ -298,6 +332,11 @@ final class Node {
     return true;
   }
 
+  /**
+   * Index represents the index of the child node in {@code children} in which the
+   * interval [start, end) exists, and the Offset represents the offset of Unicode char
+   * count before the interval [start, end).
+   */
   static ChildIndexOffset getChildIndexOffset(List<Node> children, int start, int end) {
     int offset = 0;
     for (int i = 0; i < children.size(); i++) {
@@ -350,6 +389,10 @@ final class Node {
     return success;
   }
 
+  /**
+   * Recursively extract the String that this {@link Node} effectively holds and push it
+   * onto the {@link StringBuilder}.
+   */
   void toStringRec(StringBuilder sb) {
     if (this.nodeBody.val() instanceof Leaf) {
       String val = getLeaf();
@@ -364,6 +407,7 @@ final class Node {
     }
   }
 
+  /** Returns the String that this {@link Node} effectively holds. */
   String getString() {
     if (this.getHeight() == 0) {
       if (nodeBody.val() instanceof Leaf) {
@@ -377,14 +421,17 @@ final class Node {
     return sb.toString();
   }
 
+  /** The height of this node in the tree. */
   int getHeight() {
     return this.nodeBody.height();
   }
 
+  /** The length of String that this {@link Node} effectively holds. */
   int getLength() {
     return this.nodeBody.length();
   }
 
+  /** The number of new line count in the String that this {@link Node} effectively holds. */
   int getNewlineCount() {
     return this.nodeBody.newlineCount();
   }
@@ -397,6 +444,9 @@ final class Node {
     return this.nodeBody;
   }
 
+  /**
+   * Returns list of nodes i.e. children of this {@link Internal} node.
+   */
   List<Node> getChildren() {
     if (this.nodeBody.val() instanceof Leaf) {
       throw new UnsupportedOperationException("getChildren() called on leaf");
@@ -406,6 +456,7 @@ final class Node {
     return nodes;
   }
 
+  /** Returns the String in the {@link Leaf} node. */
   String getLeaf() {
     if (this.nodeBody.val() instanceof Internal) {
       throw new UnsupportedOperationException("getLeaf() called on internal node");
@@ -415,10 +466,10 @@ final class Node {
 
   boolean isValidNode() {
     if (this.nodeBody.val() instanceof Leaf) {
-      return ((String) this.nodeBody.val().get()).length() >= MIN_LEAF;
+      return this.getLeaf().length() >= MIN_LEAF;
     } else if (this.nodeBody.val() instanceof Internal) {
       @SuppressWarnings("unchecked")
-      List<Node> nodes = ((List<Node>) this.nodeBody.val().get());
+      List<Node> nodes = this.getChildren();
       return nodes.stream().allMatch((node) -> node.getLength() >= MIN_CHILDREN);
     } else {
       throw new UnsupportedOperationException("Unreachable state");
