@@ -11,8 +11,6 @@ The project doesn't provide all it's operations and optimizations and is solely 
 Usage
 -----
 
-___Note: The API is unstable, and is currently work in progress.___
-
 - Create a Rope from String.
   ```java
   Rope a = Rope.from("hello");

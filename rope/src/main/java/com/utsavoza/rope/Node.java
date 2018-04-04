@@ -49,7 +49,7 @@ final class Node {
     return new Node(nodeBody);
   }
 
-  /** Returns an {@link Internal} node whose children are {@code pieces}. */
+  /** Returns an {@link Internal} node whose children are node {@code pieces}. */
   static Node fromPieces(List<Node> pieces) {
     if (pieces.size() < 2 || pieces.size() > MAX_CHILDREN) {
       throw new IllegalArgumentException("Nodes exceeds MAX_CHILDREN limit");
@@ -68,13 +68,6 @@ final class Node {
     return new Node(nodeBody);
   }
 
-  /**
-   * Merge given lists of nodes and return {@link Internal} node which is parent of
-   * {@code children1} and {@code children2}. If the total number of children is less
-   * than equal to {@code MAX_CHILDREN}, then it simply returns a parent node of
-   * {@code children1} and {@code children2}. However, if the total number of children
-   * exceeds {@code MAX_CHILDREN}, then we consider splitting the combined list first.
-   */
   static Node mergeNodes(List<Node> children1, List<Node> children2) {
     int totalChildren = children1.size() + children2.size();
     List<Node> children =
