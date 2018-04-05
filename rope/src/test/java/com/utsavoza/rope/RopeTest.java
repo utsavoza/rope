@@ -1,5 +1,6 @@
 package com.utsavoza.rope;
 
+import java.util.Arrays;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,6 +39,15 @@ public class RopeTest {
         .pushString(text)
         .build();
     assertEquals(license.toString(), text);
+
+    Rope newRope = new Rope.Builder()
+        .push(Node.fromString("A"))
+        .push(Node.fromStringPiece("B"))
+        .push(Node.fromPieces(Arrays.asList(Node.fromString("C"), Node.fromString("D"))))
+        .pushString("E")
+        .pushRope(Rope.from("F"))
+        .build();
+    assertEquals(newRope.toString(), "ABCDEF");
   }
 
   @Test public void testConcat() {
