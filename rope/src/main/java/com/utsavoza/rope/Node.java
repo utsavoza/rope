@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 
 import static com.utsavoza.rope.Util.NEW_LINE;
 import static com.utsavoza.rope.Util.compare;
-import static com.utsavoza.rope.Util.isCharBoundary;
+import static com.utsavoza.rope.Util.findLeafSplitForMerge;
 
 /** Represents a node in the tree. */
 final class Node {
@@ -156,6 +156,50 @@ final class Node {
     }
   }
 
+  /**
+   * Index represents the index of the child node in {@code children} in which the
+   * interval [start, end) exists, and the Offset represents the offset of Unicode char
+   * count before the interval [start, end).
+   */
+  static ChildIndexOffset getChildIndexOffset(List<Node> children, int start, int end) {
+    int offset = 0;
+    for (int i = 0; i < children.size(); i++) {
+      int nextOffset = offset + children.get(i).getLength();
+      if (nextOffset >= start) {
+        if (nextOffset >= end) {
+          return new ChildIndexOffset(i, offset);
+        } else {
+          return null;
+        }
+      }
+      offset = nextOffset;
+    }
+    return null;
+  }
+
+  // should this be used instead of its static alternative ?
+  Node mergeLeaf(Node rope) {
+    if (!this.isLeaf() || !rope.isLeaf()) {
+      throw new UnsupportedOperationException("mergeLeaf() called on/with non-leaf node");
+    }
+    if (this.getLength() >= MIN_LEAF && rope.getLength() >= MIN_LEAF) {
+      return Node.fromPieces(Arrays.asList(this, rope));
+    }
+    String thisString = this.getLeaf();
+    String ropeString = rope.getLeaf();
+    String mergedString = thisString + ropeString;
+    if (mergedString.length() <= MAX_LEAF) {
+      return Node.fromStringPiece(mergedString);
+    } else {
+      int splitPoint = findLeafSplitForMerge(mergedString);
+      String leftString = mergedString.substring(0, splitPoint);
+      String rightString = mergedString.substring(splitPoint);
+      Node leftNode = Node.fromStringPiece(leftString);
+      Node rightNode = Node.fromStringPiece(rightString);
+      return Node.fromPieces(Arrays.asList(leftNode, rightNode));
+    }
+  }
+
   // should this be used instead of its static alternative ??
   Node concat(Node anotherRope) {
     int rope1Height = this.getHeight();
@@ -206,27 +250,6 @@ final class Node {
     }
   }
 
-  private static int findLeafSplitForMerge(String s) {
-    return findLeafSplit(s, Math.max(MIN_LEAF, s.length() - MAX_LEAF));
-  }
-
-  static int findLeafSplitForBulk(String s) {
-    return findLeafSplit(s, MIN_LEAF);
-  }
-
-  private static int findLeafSplit(String s, int minSplit) {
-    int splitPoint = Math.min(MAX_LEAF, s.length() - MIN_LEAF);
-    int newlineCharIndex = s.substring(minSplit - 1, splitPoint).lastIndexOf('\n');
-    if (newlineCharIndex != -1) {
-      return minSplit + newlineCharIndex;
-    } else {
-      while (!isCharBoundary(s, splitPoint)) {
-        splitPoint -= 1;
-      }
-      return splitPoint;
-    }
-  }
-
   /**
    * Finds the subsequence of {@link Rope} from interval [start, end) and pushes
    * the result into the {@link Rope.Builder}. The current implementation utilizes the
@@ -243,12 +266,11 @@ final class Node {
     }
     NodeVal val = this.nodeBody.val();
     if (val instanceof Leaf) {
-      String leafString = (String) val.get();
+      String leafString = getLeaf();
       builder.pushShortString(leafString.substring(start, end));
     } else if (val instanceof Internal) {
       int offset = 0;
-      @SuppressWarnings("unchecked")
-      List<Node> children = (List<Node>) val.get();
+      List<Node> children = getChildren();
       for (Node child : children) {
         if (end <= offset) {
           break;
@@ -325,38 +347,16 @@ final class Node {
     return true;
   }
 
-  /**
-   * Index represents the index of the child node in {@code children} in which the
-   * interval [start, end) exists, and the Offset represents the offset of Unicode char
-   * count before the interval [start, end).
-   */
-  static ChildIndexOffset getChildIndexOffset(List<Node> children, int start, int end) {
-    int offset = 0;
-    for (int i = 0; i < children.size(); i++) {
-      int nextOffset = offset + children.get(i).getLength();
-      if (nextOffset >= start) {
-        if (nextOffset >= end) {
-          return new ChildIndexOffset(i, offset);
-        } else {
-          return null;
-        }
-      }
-      offset = nextOffset;
-    }
-    return null;
-  }
-
   // try to replace the string without changing the tree structure
   private boolean tryReplaceString(int start, int end, String newString) {
-    if (this.getHeight() == 0) {
+    if (this.isLeaf()) {
       return tryReplaceLeafString(start, end, newString);
     }
 
     // mutate in place
     boolean success = false;
     if (this.nodeBody.val() instanceof Internal) {
-      @SuppressWarnings("unchecked")
-      List<Node> children = (List<Node>) this.nodeBody.val().get();
+      List<Node> children = getChildren();
       ChildIndexOffset childIndexOffset = getChildIndexOffset(children, start, end);
       if (childIndexOffset != null) {
         int index = childIndexOffset.index;
@@ -388,10 +388,10 @@ final class Node {
    */
   void toStringRec(StringBuilder sb) {
     if (this.nodeBody.val() instanceof Leaf) {
-      String val = getLeaf();
+      String val = this.getLeaf();
       sb.append(val);
     } else if (this.nodeBody.val() instanceof Internal) {
-      List<Node> children = getChildren();
+      List<Node> children = this.getChildren();
       for (Node child : children) {
         child.toStringRec(sb);
       }
@@ -404,7 +404,7 @@ final class Node {
   String getString() {
     if (this.getHeight() == 0) {
       if (nodeBody.val() instanceof Leaf) {
-        return getLeaf();
+        return this.getLeaf();
       } else {
         throw new IllegalStateException("height and node type inconsistent");
       }
@@ -429,12 +429,12 @@ final class Node {
     return this.nodeBody.newlineCount();
   }
 
-  boolean isLeaf() {
-    return this.getHeight() == 0;
-  }
-
   NodeBody getNodeBody() {
     return this.nodeBody;
+  }
+
+  private boolean isLeaf() {
+    return this.getHeight() == 0;
   }
 
   /**
@@ -450,18 +450,17 @@ final class Node {
   }
 
   /** Returns the String in the {@link Leaf} node. */
-  String getLeaf() {
+  private String getLeaf() {
     if (this.nodeBody.val() instanceof Internal) {
       throw new UnsupportedOperationException("getLeaf() called on internal node");
     }
     return (String) this.nodeBody.val().get();
   }
 
-  boolean isValidNode() {
+  private boolean isValidNode() {
     if (this.nodeBody.val() instanceof Leaf) {
       return this.getLeaf().length() >= MIN_LEAF;
     } else if (this.nodeBody.val() instanceof Internal) {
-      @SuppressWarnings("unchecked")
       List<Node> nodes = this.getChildren();
       return nodes.stream().allMatch((node) -> node.getLength() >= MIN_CHILDREN);
     } else {

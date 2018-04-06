@@ -16,14 +16,7 @@ final class NodeBody {
   private int newlineCount;
   private NodeVal val;
 
-  NodeBody(int height, int length, int newlineCount, NodeVal val) {
-    this.height = height;
-    this.length = length;
-    this.newlineCount = newlineCount;
-    this.val = val;
-  }
-
-  NodeBody(Builder builder) {
+  private NodeBody(Builder builder) {
     nullCheck(builder);
     this.height = builder.height;
     this.length = builder.length;

@@ -44,6 +44,11 @@ public class NodeTest {
     assertEquals(mergedLeaves, helloWorld);
     assertNotEquals(mergedLeaves, hello);
     assertNotEquals(mergedLeaves, world);
+
+    mergedLeaves = hello.mergeLeaf(world);
+    assertEquals(helloWorld, mergedLeaves);
+    assertEquals(hello, Node.fromString("hello"));
+    assertEquals(world, Node.fromString("world"));
   }
 
   @Test public void testMergeNodes() {

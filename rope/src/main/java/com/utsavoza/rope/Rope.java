@@ -6,8 +6,8 @@ import java.util.List;
 
 import static com.utsavoza.rope.Node.MAX_CHILDREN;
 import static com.utsavoza.rope.Node.MAX_LEAF;
-import static com.utsavoza.rope.Node.findLeafSplitForBulk;
 import static com.utsavoza.rope.Node.getChildIndexOffset;
+import static com.utsavoza.rope.Util.findLeafSplitForBulk;
 
 /**
  * <p>A <a href="https://en.wikipedia.org/wiki/Rope_(data_structure)">rope</a> is a

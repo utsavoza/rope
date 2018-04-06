@@ -1,11 +1,13 @@
 package com.utsavoza.rope;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.utsavoza.rope.Node.MAX_LEAF;
+import static com.utsavoza.rope.Node.MIN_LEAF;
 
 /** Junk drawer of utility methods. */
 final class Util {
@@ -40,6 +42,27 @@ final class Util {
       e.printStackTrace();
     }
     return sb.toString();
+  }
+
+  static int findLeafSplitForMerge(String s) {
+    return findLeafSplit(s, Math.max(MIN_LEAF, s.length() - MAX_LEAF));
+  }
+
+  static int findLeafSplitForBulk(String s) {
+    return findLeafSplit(s, MIN_LEAF);
+  }
+
+  private static int findLeafSplit(String s, int minSplit) {
+    int splitPoint = Math.min(MAX_LEAF, s.length() - MIN_LEAF);
+    int newlineCharIndex = s.substring(minSplit - 1, splitPoint).lastIndexOf('\n');
+    if (newlineCharIndex != -1) {
+      return minSplit + newlineCharIndex;
+    } else {
+      while (!isCharBoundary(s, splitPoint)) {
+        splitPoint -= 1;
+      }
+      return splitPoint;
+    }
   }
 
   static Ordering compare(int num1, int num2) {
