@@ -1,5 +1,6 @@
 package com.utsavoza.rope;
 
+import com.utsavoza.rope.NodeBody.NodeVal;
 import java.util.List;
 
 /** The internal nodes in the tree represents concatenation of its children. */

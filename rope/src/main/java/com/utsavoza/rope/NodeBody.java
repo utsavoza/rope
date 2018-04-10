@@ -79,6 +79,10 @@ final class NodeBody {
         && otherNodeBody.val.equals(this.val);
   }
 
+  interface NodeVal {
+    Object get();
+  }
+
   static class Builder {
     private int height;
     private int length;
