@@ -83,9 +83,9 @@ public final class Rope {
     return new Rope(node, 0, node.getLength());
   }
 
-  private static String extractStringFrom(Rope rope) {
+  private String extractString() {
     StringBuilder sb = new StringBuilder();
-    rope.toStringRec(sb);
+    this.toStringRec(sb);
     return sb.toString();
   }
 
@@ -186,7 +186,7 @@ public final class Rope {
     if (this.isFull()) {
       return this.root.getString();
     } else {
-      return extractStringFrom(this);
+      return this.extractString();
     }
   }
 
