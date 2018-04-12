@@ -1,5 +1,7 @@
 package com.utsavoza.rope;
 
+import com.utsavoza.rope.NodeBody.NodeVal;
+
 /** The leaf nodes in the tree consists of flat strings. */
 final class Leaf implements NodeVal {
 
