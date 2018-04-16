@@ -34,7 +34,7 @@ final class Node {
     return builder.getRootNode();
   }
 
-  /** Returns a {@link Leaf} node which holds a flat string {@code piece} */
+  /** Returns a {@link NodeBody.Leaf} node which holds a flat string {@code piece} */
   static Node fromStringPiece(String piece) {
     if (piece.length() > MAX_LEAF) {
       throw new IllegalArgumentException("String piece exceeds MAX_LEAF limit");
@@ -44,13 +44,13 @@ final class Node {
         .height(0)
         .length(piece.length())
         .newlineCount(Util.countOccurrence(piece, NEW_LINE))
-        .val(new Leaf(piece))
+        .val(new NodeBody.Leaf(piece))
         .build();
 
     return new Node(nodeBody);
   }
 
-  /** Returns an {@link Internal} node whose children are node {@code pieces}. */
+  /** Returns an {@link NodeBody.Internal} node whose children are node {@code pieces}. */
   static Node fromPieces(List<Node> pieces) {
     if (pieces.size() < 2 || pieces.size() > MAX_CHILDREN) {
       throw new IllegalArgumentException("Nodes exceeds MAX_CHILDREN limit");
@@ -63,7 +63,7 @@ final class Node {
         .height(height)
         .length(length)
         .newlineCount(newlineCount)
-        .val(new Internal(pieces))
+        .val(new NodeBody.Internal(pieces))
         .build();
 
     return new Node(nodeBody);
@@ -266,10 +266,10 @@ final class Node {
       return;
     }
     NodeVal val = this.nodeBody.val();
-    if (val instanceof Leaf) {
+    if (val instanceof NodeBody.Leaf) {
       String leafString = getLeaf();
       builder.pushShortString(leafString.substring(start, end));
-    } else if (val instanceof Internal) {
+    } else if (val instanceof NodeBody.Internal) {
       int offset = 0;
       List<Node> children = getChildren();
       for (Node child : children) {
@@ -356,7 +356,7 @@ final class Node {
 
     // mutate in place
     boolean success = false;
-    if (this.nodeBody.val() instanceof Internal) {
+    if (this.nodeBody.val() instanceof NodeBody.Internal) {
       List<Node> children = getChildren();
       ChildIndexOffset childIndexOffset = getChildIndexOffset(children, start, end);
       if (childIndexOffset != null) {
@@ -374,7 +374,7 @@ final class Node {
               .build();
         }
       }
-    } else if (this.nodeBody.val() instanceof Leaf) {
+    } else if (this.nodeBody.val() instanceof NodeBody.Leaf) {
       throw new IllegalStateException("height and node val type are inconsistent");
     }
 
@@ -388,10 +388,10 @@ final class Node {
    * onto the {@link StringBuilder}.
    */
   void toStringRec(StringBuilder sb) {
-    if (this.nodeBody.val() instanceof Leaf) {
+    if (this.nodeBody.val() instanceof NodeBody.Leaf) {
       String val = this.getLeaf();
       sb.append(val);
-    } else if (this.nodeBody.val() instanceof Internal) {
+    } else if (this.nodeBody.val() instanceof NodeBody.Internal) {
       List<Node> children = this.getChildren();
       for (Node child : children) {
         child.toStringRec(sb);
@@ -404,7 +404,7 @@ final class Node {
   /** Returns the String that this {@link Node} effectively holds. */
   String getString() {
     if (this.getHeight() == 0) {
-      if (nodeBody.val() instanceof Leaf) {
+      if (nodeBody.val() instanceof NodeBody.Leaf) {
         return this.getLeaf();
       } else {
         throw new IllegalStateException("height and node type inconsistent");
@@ -439,10 +439,10 @@ final class Node {
   }
 
   /**
-   * Returns list of nodes i.e. children of this {@link Internal} node.
+   * Returns list of nodes i.e. children of this {@link NodeBody.Internal} node.
    */
   List<Node> getChildren() {
-    if (this.nodeBody.val() instanceof Leaf) {
+    if (this.nodeBody.val() instanceof NodeBody.Leaf) {
       throw new UnsupportedOperationException("getChildren() called on leaf");
     }
     @SuppressWarnings("unchecked")
@@ -450,18 +450,18 @@ final class Node {
     return nodes;
   }
 
-  /** Returns the String in the {@link Leaf} node. */
+  /** Returns the String in the {@link NodeBody.Leaf} node. */
   private String getLeaf() {
-    if (this.nodeBody.val() instanceof Internal) {
+    if (this.nodeBody.val() instanceof NodeBody.Internal) {
       throw new UnsupportedOperationException("getLeaf() called on internal node");
     }
     return (String) this.nodeBody.val().get();
   }
 
   private boolean isValidNode() {
-    if (this.nodeBody.val() instanceof Leaf) {
+    if (this.nodeBody.val() instanceof NodeBody.Leaf) {
       return this.getLeaf().length() >= MIN_LEAF;
-    } else if (this.nodeBody.val() instanceof Internal) {
+    } else if (this.nodeBody.val() instanceof NodeBody.Internal) {
       List<Node> nodes = this.getChildren();
       return nodes.stream().allMatch((node) -> node.getLength() >= MIN_CHILDREN);
     } else {

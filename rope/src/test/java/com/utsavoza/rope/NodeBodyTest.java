@@ -16,7 +16,7 @@ public class NodeBodyTest {
         .height(0)
         .length(helloStr.length())
         .newlineCount(countOccurrence(helloStr, NEW_LINE))
-        .val(new Leaf(helloStr))
+        .val(new NodeBody.Leaf(helloStr))
         .build();
 
     String worldStr = "world";
@@ -24,7 +24,7 @@ public class NodeBodyTest {
         .height(0)
         .length(worldStr.length())
         .newlineCount(countOccurrence(worldStr, NEW_LINE))
-        .val(new Leaf(worldStr))
+        .val(new NodeBody.Leaf(worldStr))
         .build();
 
     assertNotEquals(hello, world);
@@ -33,7 +33,7 @@ public class NodeBodyTest {
         .height(0)
         .length(worldStr.length())
         .newlineCount(countOccurrence(worldStr, NEW_LINE))
-        .val(new Leaf("world"))
+        .val(new NodeBody.Leaf("world"))
         .build();
 
     assertEquals(world, worldCopy);
