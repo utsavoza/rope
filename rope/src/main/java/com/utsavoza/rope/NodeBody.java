@@ -1,5 +1,7 @@
 package com.utsavoza.rope;
 
+import java.util.List;
+
 /**
  * Represents the body of a node in the tree. The current implementation
  * is {@link Rope} specific, and can possibly be generalized. The internal
@@ -81,6 +83,74 @@ final class NodeBody {
 
   interface NodeVal {
     Object get();
+  }
+
+  /** The leaf nodes in the tree consists of flat strings. */
+  static class Leaf implements NodeVal {
+
+    private String val;
+
+    Leaf(String val) {
+      this.val = val;
+    }
+
+    @Override public Object get() {
+      return val;
+    }
+
+    @Override public String toString() {
+      return this.val;
+    }
+
+    @Override public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (!(obj instanceof Leaf)) {
+        return false;
+      }
+      Leaf otherLeaf = (Leaf) obj;
+      return this.val.equals(otherLeaf.val);
+    }
+
+    @Override public int hashCode() {
+      return this.val.hashCode();
+    }
+  }
+
+  /** The internal nodes in the tree represents concatenation of its children. */
+  static class Internal implements NodeVal {
+
+    private List<Node> children;
+
+    Internal(List<Node> children) {
+      this.children = children;
+    }
+
+    @Override public Object get() {
+      return children;
+    }
+
+    @Override public String toString() {
+      return "INTERNAL " + this.children.size(); // better formatting and output ??
+    }
+
+    @Override public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+      if (!(obj instanceof Internal)) {
+        return false;
+      }
+      Internal otherNode = (Internal) obj;
+      return this.children.equals(otherNode.children);
+    }
+
+    @Override public int hashCode() {
+      int hash = 17;
+      hash += 31 * this.children.hashCode() + hash;
+      return hash;
+    }
   }
 
   static class Builder {
