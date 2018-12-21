@@ -1,4 +1,4 @@
-package com.utsavoza.rope;
+package com.github.utsavoza.rope;
 
 /** A general utility class to represent intervals. */
 public final class Interval {

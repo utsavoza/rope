@@ -1,12 +1,11 @@
-package com.utsavoza.rope;
+package com.github.utsavoza.rope;
 
 import org.junit.Test;
 
-import static com.utsavoza.rope.Util.NEW_LINE;
-import static com.utsavoza.rope.Util.countOccurrence;
+import static com.github.utsavoza.rope.Util.NEW_LINE;
+import static com.github.utsavoza.rope.Util.countOccurrence;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
 
 public class NodeBodyTest {
 

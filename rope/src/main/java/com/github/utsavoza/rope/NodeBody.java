@@ -1,4 +1,4 @@
-package com.utsavoza.rope;
+package com.github.utsavoza.rope;
 
 import java.util.List;
 

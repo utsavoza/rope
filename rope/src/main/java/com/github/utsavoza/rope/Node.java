@@ -1,15 +1,15 @@
-package com.utsavoza.rope;
+package com.github.utsavoza.rope;
 
-import com.utsavoza.rope.NodeBody.NodeVal;
+import com.github.utsavoza.rope.NodeBody.NodeVal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.utsavoza.rope.Util.NEW_LINE;
-import static com.utsavoza.rope.Util.compare;
-import static com.utsavoza.rope.Util.findLeafSplitForMerge;
+import static com.github.utsavoza.rope.Util.NEW_LINE;
+import static com.github.utsavoza.rope.Util.compare;
+import static com.github.utsavoza.rope.Util.findLeafSplitForMerge;
 
 /** Represents a node in the tree. */
 final class Node {

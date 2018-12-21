@@ -1,4 +1,4 @@
-package com.utsavoza.rope;
+package com.github.utsavoza.rope;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.utsavoza.rope.Node.MAX_LEAF;
-import static com.utsavoza.rope.Node.MIN_LEAF;
+import static com.github.utsavoza.rope.Node.MAX_LEAF;
+import static com.github.utsavoza.rope.Node.MIN_LEAF;
 
 /** Junk drawer of utility methods. */
 final class Util {

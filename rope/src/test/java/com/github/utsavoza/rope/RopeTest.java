@@ -1,10 +1,11 @@
-package com.utsavoza.rope;
+package com.github.utsavoza.rope;
 
 import java.util.Arrays;
+
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.utsavoza.rope.Util.readSampleFile;
+import static com.github.utsavoza.rope.Util.readSampleFile;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 

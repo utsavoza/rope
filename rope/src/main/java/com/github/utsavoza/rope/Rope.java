@@ -1,13 +1,13 @@
-package com.utsavoza.rope;
+package com.github.utsavoza.rope;
 
-import com.utsavoza.rope.Node.ChildIndexOffset;
+import com.github.utsavoza.rope.Node.ChildIndexOffset;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.utsavoza.rope.Node.MAX_CHILDREN;
-import static com.utsavoza.rope.Node.MAX_LEAF;
-import static com.utsavoza.rope.Node.getChildIndexOffset;
-import static com.utsavoza.rope.Util.findLeafSplitForBulk;
+import static com.github.utsavoza.rope.Node.MAX_CHILDREN;
+import static com.github.utsavoza.rope.Node.MAX_LEAF;
+import static com.github.utsavoza.rope.Node.getChildIndexOffset;
+import static com.github.utsavoza.rope.Util.findLeafSplitForBulk;
 
 /**
  * <p>A <a href="https://en.wikipedia.org/wiki/Rope_(data_structure)">rope</a> is a

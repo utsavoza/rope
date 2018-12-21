@@ -1,10 +1,10 @@
-package com.utsavoza.rope;
+package com.github.utsavoza.rope;
 
 import org.junit.Test;
 
-import static com.utsavoza.rope.Util.NEW_LINE;
-import static com.utsavoza.rope.Util.countOccurrence;
-import static com.utsavoza.rope.Util.isCharBoundary;
+import static com.github.utsavoza.rope.Util.NEW_LINE;
+import static com.github.utsavoza.rope.Util.countOccurrence;
+import static com.github.utsavoza.rope.Util.isCharBoundary;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
